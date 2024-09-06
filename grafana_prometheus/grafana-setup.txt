@@ -1,0 +1,6 @@
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+helm install grafana grafana/grafana --namespace monitoring
+kubectl get pods -n monitoring
+kubectl get service
+kubectl expose service grafana --type=NodePort --target-port=3000 --name=grafana-ext

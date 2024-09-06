@@ -1,0 +1,284 @@
+PS C:\Users\user> nmap -A -T4 127.0.0.1
+Starting Nmap 7.95 ( https://nmap.org ) at 2024-07-29 17:20 Pakistan Standard Time
+Nmap scan report for kubernetes.docker.internal (127.0.0.1)
+Host is up (0.00053s latency).
+Not shown: 991 closed tcp ports (reset)
+PORT      STATE SERVICE       VERSION
+135/tcp   open  msrpc         Microsoft Windows RPC
+445/tcp   open  microsoft-ds?
+1123/tcp  open  murray?
+| fingerprint-strings:
+|   GenericLines:
+|     HTTP/1.1 408 Request Timeout
+|     content-length: 0
+|     connection: close
+|     date: Mon, 29 Jul 2024 12:20:33 GMT
+|   GetRequest:
+|     HTTP/1.0 200 OK
+|     content-length: 1612
+|     content-type: text/html
+|     vary: Origin, Access-Control-Request-Method, Access-Control-Request-Headers
+|     date: Mon, 29 Jul 2024 12:20:33 GMT
+|     <!doctype html><html lang="en"><head><script>!function(e,t,a,n,g){e[n]=e[n]||[],e[n].push({"gtm.start":(new Date).getTime(),event:"gtm.js"});var m=t.getElementsByTagName(a)[0],r=t.createElement(a);r.async=!0,r.src="https://www.googletagmanager.com/gtm.js?id=GTM-PCHTQ8Z",m.parentNode.insertBefore(r,m)}(window,document,"script","dataLayer")</script><meta charset="utf-8"/><link rel="icon" href="/favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#e032ee"/><meta name="description" content="Tabnine hub"/><link rel="apple-touch-icon" href="/logo256.png"/><link rel="manifest" href="/manifest.json"/><title>Tabnine Hub</title><script defer="defer" src="/st
+|   HTTPOptions:
+|     HTTP/1.0 404 Not Found
+|     content-length: 0
+|     vary: Origin, Access-Control-Request-Method, Access-Control-Request-Headers
+|     date: Mon, 29 Jul 2024 12:20:33 GMT
+|   NULL:
+|     HTTP/1.1 408 Request Timeout
+|     content-length: 0
+|     connection: close
+|     date: Mon, 29 Jul 2024 12:20:28 GMT
+|   RPCCheck, RTSPRequest:
+|     HTTP/1.1 400 Bad Request
+|     content-length: 0
+|     connection: close
+|_    date: Mon, 29 Jul 2024 12:20:33 GMT
+3000/tcp  open  ppp?
+3306/tcp  open  mysql         MySQL 8.0.32
+| mysql-info:
+|   Protocol: 10
+|   Version: 8.0.32
+|   Thread ID: 13
+|   Capabilities flags: 65535
+|   Some Capabilities: Speaks41ProtocolNew, FoundRows, ODBCClient, Speaks41ProtocolOld, DontAllowDatabaseTableColumn, Support41Auth, ConnectWithDatabase, SupportsTransactions, IgnoreSigpipes, SwitchToSSLAfterHandshake, InteractiveClient, SupportsLoadDataLocal, SupportsCompression, LongPassword, LongColumnFlag, IgnoreSpaceBeforeParenthesis, SupportsMultipleResults, SupportsAuthPlugins, SupportsMultipleStatments
+|   Status: Autocommit
+|   Salt: gPxi%\x1Fs\x11a       w\x12.~\x13@?\x0E0_
+|_  Auth Plugin Name: caching_sha2_password
+|_ssl-date: TLS randomness does not represent time
+| ssl-cert: Subject: commonName=MySQL_Server_8.0.32_Auto_Generated_Server_Certificate
+| Not valid before: 2024-03-25T12:13:56
+|_Not valid after:  2034-03-23T12:13:56
+5357/tcp  open  http          Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+|_http-title: Service Unavailable
+|_http-server-header: Microsoft-HTTPAPI/2.0
+8000/tcp  open  http          Golang net/http server
+|_http-title: Site doesn't have a title (text/plain; charset=UTF-8).
+| fingerprint-strings:
+|   FourOhFourRequest:
+|     HTTP/1.0 200 OK
+|     Content-Type: text/plain; charset=UTF-8
+|     Date: Mon, 29 Jul 2024 12:20:32 GMT
+|     Content-Length: 2
+|   GenericLines, Help, LPDString, RTSPRequest, SIPOptions, SSLSessionReq, Socks5:
+|     HTTP/1.1 400 Bad Request
+|     Content-Type: text/plain; charset=utf-8
+|     Connection: close
+|     Request
+|   GetRequest:
+|     HTTP/1.0 200 OK
+|     Content-Type: text/plain; charset=UTF-8
+|     Date: Mon, 29 Jul 2024 12:20:31 GMT
+|     Content-Length: 2
+|   HTTPOptions:
+|     HTTP/1.0 204 No Content
+|     Allow: OPTIONS, GET
+|     Date: Mon, 29 Jul 2024 12:20:32 GMT
+|   OfficeScan:
+|     HTTP/1.1 400 Bad Request: missing required Host header
+|     Content-Type: text/plain; charset=utf-8
+|     Connection: close
+|_    Request: missing required Host header
+8001/tcp  open  http          Golang net/http server
+| fingerprint-strings:
+|   FourOhFourRequest:
+|     HTTP/1.0 201 Created
+|     Content-Type: application/json
+|     Date: Mon, 29 Jul 2024 12:20:31 GMT
+|     d\xdbm
+|     5H,;
+|     tchZU
+|     -E;1%
+|     El&^
+|     OzE/
+|     EX2q
+|   GetRequest:
+|     HTTP/1.0 301 Moved Permanently
+|     Cache-Control: no-cache, no-store, must-revalidate
+|     Expires: 0
+|     Location: /b
+|     Pragma: no-cache
+|     Date: Mon, 29 Jul 2024 12:20:30 GMT
+|_    Content-Length: 0
+|_http-title: Did not follow redirect to /b
+49152/tcp open  unknown
+| fingerprint-strings:
+|   FourOhFourRequest, GenericLines, GetRequest, HTTPOptions, RTSPRequest:
+|     {"version":0,"kind":"Unknown","status":"BadRequest","body":{"message":"Failed to parse json request"}}
+|     {"version":0,"kind":"Unknown","status":"BadRequest","body":{"message":"Failed to parse json request"}}
+|   Help, LPDString:
+|     {"version":0,"kind":"Unknown","status":"BadRequest","body":{"message":"Failed to parse json request"}}
+|   SIPOptions:
+|     {"version":0,"kind":"Unknown","status":"BadRequest","body":{"message":"Failed to parse json request"}}
+|     {"version":0,"kind":"Unknown","status":"BadRequest","body":{"message":"Failed to parse json request"}}
+|     {"version":0,"kind":"Unknown","status":"BadRequest","body":{"message":"Failed to parse json request"}}
+|     {"version":0,"kind":"Unknown","status":"BadRequest","body":{"message":"Failed to parse json request"}}
+|     {"version":0,"kind":"Unknown","status":"BadRequest","body":{"message":"Failed to parse json request"}}
+|     {"version":0,"kind":"Unknown","status":"BadRequest","body":{"message":"Failed to parse json request"}}
+|     {"version":0,"kind":"Unknown","status":"BadRequest","body":{"message":"Failed to parse json request"}}
+|     {"version":0,"kind":"Unknown","status":"BadRequest","body":{"message":"Failed to parse json request"}}
+|_    {"version":0,"kind":"Unknown","status":"BadRequest","body":{"message":"Faile
+4 services unrecognized despite returning data. If you know the service/version, please submit the following fingerprints at https://nmap.org/cgi-bin/submit.cgi?new-service :
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port1123-TCP:V=7.95%I=7%D=7/29%Time=66A7890C%P=i686-pc-windows-windows%
+SF:r(NULL,6B,"HTTP/1\.1\x20408\x20Request\x20Timeout\r\ncontent-length:\x2
+SF:00\r\nconnection:\x20close\r\ndate:\x20Mon,\x2029\x20Jul\x202024\x2012:
+SF:20:28\x20GMT\r\n\r\n")%r(GenericLines,6B,"HTTP/1\.1\x20408\x20Request\x
+SF:20Timeout\r\ncontent-length:\x200\r\nconnection:\x20close\r\ndate:\x20M
+SF:on,\x2029\x20Jul\x202024\x2012:20:33\x20GMT\r\n\r\n")%r(GetRequest,700,
+SF:"HTTP/1\.0\x20200\x20OK\r\ncontent-length:\x201612\r\ncontent-type:\x20
+SF:text/html\r\nvary:\x20Origin,\x20Access-Control-Request-Method,\x20Acce
+SF:ss-Control-Request-Headers\r\ndate:\x20Mon,\x2029\x20Jul\x202024\x2012:
+SF:20:33\x20GMT\r\n\r\n<!doctype\x20html><html\x20lang=\"en\"><head><scrip
+SF:t>!function\(e,t,a,n,g\){e\[n\]=e\[n\]\|\|\[\],e\[n\]\.push\({\"gtm\.st
+SF:art\":\(new\x20Date\)\.getTime\(\),event:\"gtm\.js\"}\);var\x20m=t\.get
+SF:ElementsByTagName\(a\)\[0\],r=t\.createElement\(a\);r\.async=!0,r\.src=
+SF:\"https://www\.googletagmanager\.com/gtm\.js\?id=GTM-PCHTQ8Z\",m\.paren
+SF:tNode\.insertBefore\(r,m\)}\(window,document,\"script\",\"dataLayer\"\)
+SF:</script><meta\x20charset=\"utf-8\"/><link\x20rel=\"icon\"\x20href=\"/f
+SF:avicon\.ico\"/><meta\x20name=\"viewport\"\x20content=\"width=device-wid
+SF:th,initial-scale=1\"/><meta\x20name=\"theme-color\"\x20content=\"#e032e
+SF:e\"/><meta\x20name=\"description\"\x20content=\"Tabnine\x20hub\"/><link
+SF:\x20rel=\"apple-touch-icon\"\x20href=\"/logo256\.png\"/><link\x20rel=\"
+SF:manifest\"\x20href=\"/manifest\.json\"/><title>Tabnine\x20Hub</title><s
+SF:cript\x20defer=\"defer\"\x20src=\"/st")%r(HTTPOptions,9F,"HTTP/1\.0\x20
+SF:404\x20Not\x20Found\r\ncontent-length:\x200\r\nvary:\x20Origin,\x20Acce
+SF:ss-Control-Request-Method,\x20Access-Control-Request-Headers\r\ndate:\x
+SF:20Mon,\x2029\x20Jul\x202024\x2012:20:33\x20GMT\r\n\r\n")%r(RTSPRequest,
+SF:67,"HTTP/1\.1\x20400\x20Bad\x20Request\r\ncontent-length:\x200\r\nconne
+SF:ction:\x20close\r\ndate:\x20Mon,\x2029\x20Jul\x202024\x2012:20:33\x20GM
+SF:T\r\n\r\n")%r(RPCCheck,67,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nconten
+SF:t-length:\x200\r\nconnection:\x20close\r\ndate:\x20Mon,\x2029\x20Jul\x2
+SF:02024\x2012:20:33\x20GMT\r\n\r\n");
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port8000-TCP:V=7.95%I=7%D=7/29%Time=66A7890E%P=i686-pc-windows-windows%
+SF:r(GenericLines,67,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nContent-Type:\
+SF:x20text/plain;\x20charset=utf-8\r\nConnection:\x20close\r\n\r\n400\x20B
+SF:ad\x20Request")%r(GetRequest,76,"HTTP/1\.0\x20200\x20OK\r\nContent-Type
+SF::\x20text/plain;\x20charset=UTF-8\r\nDate:\x20Mon,\x2029\x20Jul\x202024
+SF:\x2012:20:31\x20GMT\r\nContent-Length:\x202\r\n\r\nOK")%r(FourOhFourReq
+SF:uest,76,"HTTP/1\.0\x20200\x20OK\r\nContent-Type:\x20text/plain;\x20char
+SF:set=UTF-8\r\nDate:\x20Mon,\x2029\x20Jul\x202024\x2012:20:32\x20GMT\r\nC
+SF:ontent-Length:\x202\r\n\r\nOK")%r(Socks5,67,"HTTP/1\.1\x20400\x20Bad\x2
+SF:0Request\r\nContent-Type:\x20text/plain;\x20charset=utf-8\r\nConnection
+SF::\x20close\r\n\r\n400\x20Bad\x20Request")%r(HTTPOptions,55,"HTTP/1\.0\x
+SF:20204\x20No\x20Content\r\nAllow:\x20OPTIONS,\x20GET\r\nDate:\x20Mon,\x2
+SF:029\x20Jul\x202024\x2012:20:32\x20GMT\r\n\r\n")%r(RTSPRequest,67,"HTTP/
+SF:1\.1\x20400\x20Bad\x20Request\r\nContent-Type:\x20text/plain;\x20charse
+SF:t=utf-8\r\nConnection:\x20close\r\n\r\n400\x20Bad\x20Request")%r(Help,6
+SF:7,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nContent-Type:\x20text/plain;\x
+SF:20charset=utf-8\r\nConnection:\x20close\r\n\r\n400\x20Bad\x20Request")%
+SF:r(SSLSessionReq,67,"HTTP/1\.1\x20400\x20Bad\x20Request\r\nContent-Type:
+SF:\x20text/plain;\x20charset=utf-8\r\nConnection:\x20close\r\n\r\n400\x20
+SF:Bad\x20Request")%r(LPDString,67,"HTTP/1\.1\x20400\x20Bad\x20Request\r\n
+SF:Content-Type:\x20text/plain;\x20charset=utf-8\r\nConnection:\x20close\r
+SF:\n\r\n400\x20Bad\x20Request")%r(SIPOptions,67,"HTTP/1\.1\x20400\x20Bad\
+SF:x20Request\r\nContent-Type:\x20text/plain;\x20charset=utf-8\r\nConnecti
+SF:on:\x20close\r\n\r\n400\x20Bad\x20Request")%r(OfficeScan,A3,"HTTP/1\.1\
+SF:x20400\x20Bad\x20Request:\x20missing\x20required\x20Host\x20header\r\nC
+SF:ontent-Type:\x20text/plain;\x20charset=utf-8\r\nConnection:\x20close\r\
+SF:n\r\n400\x20Bad\x20Request:\x20missing\x20required\x20Host\x20header");
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port8001-TCP:V=7.95%I=7%D=7/29%Time=66A7890E%P=i686-pc-windows-windows%
+SF:r(GetRequest,BA,"HTTP/1\.0\x20301\x20Moved\x20Permanently\r\nCache-Cont
+SF:rol:\x20no-cache,\x20no-store,\x20must-revalidate\r\nExpires:\x200\r\nL
+SF:ocation:\x20/b\r\nPragma:\x20no-cache\r\nDate:\x20Mon,\x2029\x20Jul\x20
+SF:2024\x2012:20:30\x20GMT\r\nContent-Length:\x200\r\n\r\n")%r(FourOhFourR
+SF:equest,1805D,"HTTP/1\.0\x20201\x20Created\r\nContent-Type:\x20applicati
+SF:on/json\r\nDate:\x20Mon,\x2029\x20Jul\x202024\x2012:20:31\x20GMT\r\n\r\
+SF:n\xc0\xf1!\xb7\x02\xd0\x96\xc6d\\\xdbm\xcd\xbb\x84F\x86\+\xd3\x81`\x8da
+SF:\xcb;\xd60\x1b\xebz\xd33M\x92s\$\xe5J5\x7f\x95\?\xd8\xa1\xf1\x08\xa0T\x
+SF:85\x805\xf5\xbe\x8b\xbc_&\xde\xf5\xd3p\xc0\x08\xf3\xa4\xb41Fo\xb5\x8c\x
+SF:ebLh\xa2\xb3\xf4\xca\xd6\xf5\xe4e\xbdU\x98\x99\xe8T\xbe\x045H,;\xc7\xce
+SF:\xa4\xa5g\x1a\xe9\xe4\.\x15\xfaZ\.\xfa\xa2O\xce\xa8e\xdc\xa3\x1cZ\x18\(
+SF:\x9b\xdaEb\*\x94<\x94\r\^\xad\x11\x93\xda\xdbS\x84\xee\x9fVx\x84h\x9bV\
+SF:xd1z\x0c\x05\xf6{\x92\xc7\(\xb9\x11V\x9f\x87WH\xee\xb2\xee\xc4\xe05!\x8
+SF:0\xc9L\x10\xa0B\*\xd4\xaa\xba\xbb%~\x20\xa0\x03\xea\xac7\xf7\"\x14\xe0\
+SF:xe3\xa1mP;\xbf&bf\xeb\xa2tchZU\n\xd5\xe8\xbf\x80\x91-E;1%\x1d\$\xa4~,B\
+SF:xf1\xc7\x7f\xa46\xabs\xb8\]\xa7\x97c\xad\x0f\x11\n\"'\xbc\x99\x8b\x19\x
+SF:b7s\xe2\x9e\x94b\xb1;\xa2\xce\|\x83\xe6\xdcl\x8c\xb9\xd9\xa9\|\xf2\x16b
+SF:\xd5\x82\x1drN@\xdd:\xcaM\"\x89\xae\xc4\x9eU\x0f\xc6oe>\x8e,\xe9\xc5\xd
+SF:3\x81\xd5\xe1\n<\x04\xb5\xbe\xba\xdf\xe8\x92p\x97\x99{\xd7\x89\xe5\x88\
+SF:x85@Wb\x04\xdc\xe7{\xaf\xedH_\xbc\xdb:\xf0j,\xf5\x8fp_\xc9\)s\xa8K\xac\
+SF:x1c\xca\x9c\x8ag\x91\x86\xe3\xa9\xdd_\xdf\$\xdd~\?\xbc\xcf\x91\xea\x98\
+SF:xf2-\xac\x05\x06hNp\x9eh\xcf\|\x9b\x1eSJ\x17Z\xfa9\xa9\n\x92\xc1}'\x0c\
+SF:xab\x95H\xc8H>\xbc\xc8\xca\x1aI\xa9\x04ZL\xe3\+\x84\xed\x13\x8dn\xcb\xf
+SF:6a7\xf3\x1et\x9a\t\x99\xff\x7f0\xf7`\x108f\xf0El&\^\xbc\x9f\xeb\xfa=\xc
+SF:8\xf6\x1c\xbb\xf9\xfb`r\x1e\xfe\xdd\xedn\nK\xd8\xc9\x8d\xa2\x7f\xf1I\xa
+SF:0\x8d\)\[\xd5\x0c\x18\x1e\]b\xed;\xe7\xe3\xeb\xe6m5\x05\x18\xfd\xaeMC\x
+SF:f7\xb1\xad\x8e\xce\xa3\xf1o\x98\x08\xe7\xa58\x82\xf3\xae\xe3\xc1\x9c\xf
+SF:9\xd0\x0e18\xf2\x95\x0cQ\|n\x1b\xe3\x8c\xaaRwm\xa5\x87\xb2\xf2\x01\xa2\
+SF:xab\xb1l}\ra\xf7ez\xaa\x7f\x98\xa1\xadQx\?\xc5T\x92\x9d\x92\xca=\xcce;\
+SF:xfc\xbc\x19\x8d\x08\xc0A\xdd\xad\[r\xd7\x8b\xa0\x84tQ\xee\x83;'\xfb\xa5
+SF:m\x9f%\xa8Cv\x807;\x14\x1a\.\xa9\xf3C\xb3\xaa\xa5\xa8\x10\x05\xe7w\xc0\
+SF:xec\x9aW\xef\x88\x16\xea\]\xa8y\xdct\(\x90\xeas\xc8;\xc9\xbb\x19\xa8\xa
+SF:b\xb6xp\xbe\xb7\xc2l\xe6\xe0\x8d\xe123\xff\x9eG\xf3,&\x9e\xf9\x16OzE/\x
+SF:11\xe7&k\x9b_\xe9\xcd\^'\xe2d\xf9\"\xb92\xc9\xfd\xea\x0c\x0c\xe9\x8cH\"
+SF:o\x01,\xb6\xc45\xff\xeb\xbb\xd6\x951\xe4>}\xd0\xf7/S\xa1\xa3\x0e\xc6\xf
+SF:c\x06J\x1b\xcd#\xd3\.\xda\xab\xa3\x9e\xa2EX2q\xd3C\xea\.V\x9c\x81\x80\x
+SF:81aX\xe0\0\xe4w\xda\xc7\x13Cu\xbb\x9c\xf6k\x05\x0c\x9fr\[\xa2\x86\x9c\x
+SF:e9\xab\xc81\xee\x81\xff\xf1\xb3\$M\xbf\x1a\(n\x85\x97\n4\[\xc2\xab\x1fW
+SF:\xfc\xe6\x13;\xc2\^\x20\xc9\xaa\xab&\[3\xaa\xf2f\x1b\xad\x8d\x7f\x1c\xa
+SF:2\x97\xbb\x18\xb6!\xa97\xd7\x1e/ft");
+==============NEXT SERVICE FINGERPRINT (SUBMIT INDIVIDUALLY)==============
+SF-Port49152-TCP:V=7.95%I=7%D=7/29%Time=66A78913%P=i686-pc-windows-windows
+SF:%r(FourOhFourRequest,CE,"{\"version\":0,\"kind\":\"Unknown\",\"status\"
+SF::\"BadRequest\",\"body\":{\"message\":\"Failed\x20to\x20parse\x20json\x
+SF:20request\"}}\n{\"version\":0,\"kind\":\"Unknown\",\"status\":\"BadRequ
+SF:est\",\"body\":{\"message\":\"Failed\x20to\x20parse\x20json\x20request\
+SF:"}}\n")%r(GenericLines,CE,"{\"version\":0,\"kind\":\"Unknown\",\"status
+SF:\":\"BadRequest\",\"body\":{\"message\":\"Failed\x20to\x20parse\x20json
+SF:\x20request\"}}\n{\"version\":0,\"kind\":\"Unknown\",\"status\":\"BadRe
+SF:quest\",\"body\":{\"message\":\"Failed\x20to\x20parse\x20json\x20reques
+SF:t\"}}\n")%r(GetRequest,CE,"{\"version\":0,\"kind\":\"Unknown\",\"status
+SF:\":\"BadRequest\",\"body\":{\"message\":\"Failed\x20to\x20parse\x20json
+SF:\x20request\"}}\n{\"version\":0,\"kind\":\"Unknown\",\"status\":\"BadRe
+SF:quest\",\"body\":{\"message\":\"Failed\x20to\x20parse\x20json\x20reques
+SF:t\"}}\n")%r(HTTPOptions,CE,"{\"version\":0,\"kind\":\"Unknown\",\"statu
+SF:s\":\"BadRequest\",\"body\":{\"message\":\"Failed\x20to\x20parse\x20jso
+SF:n\x20request\"}}\n{\"version\":0,\"kind\":\"Unknown\",\"status\":\"BadR
+SF:equest\",\"body\":{\"message\":\"Failed\x20to\x20parse\x20json\x20reque
+SF:st\"}}\n")%r(RTSPRequest,CE,"{\"version\":0,\"kind\":\"Unknown\",\"stat
+SF:us\":\"BadRequest\",\"body\":{\"message\":\"Failed\x20to\x20parse\x20js
+SF:on\x20request\"}}\n{\"version\":0,\"kind\":\"Unknown\",\"status\":\"Bad
+SF:Request\",\"body\":{\"message\":\"Failed\x20to\x20parse\x20json\x20requ
+SF:est\"}}\n")%r(Help,67,"{\"version\":0,\"kind\":\"Unknown\",\"status\":\
+SF:"BadRequest\",\"body\":{\"message\":\"Failed\x20to\x20parse\x20json\x20
+SF:request\"}}\n")%r(LPDString,67,"{\"version\":0,\"kind\":\"Unknown\",\"s
+SF:tatus\":\"BadRequest\",\"body\":{\"message\":\"Failed\x20to\x20parse\x2
+SF:0json\x20request\"}}\n")%r(SIPOptions,46D,"{\"version\":0,\"kind\":\"Un
+SF:known\",\"status\":\"BadRequest\",\"body\":{\"message\":\"Failed\x20to\
+SF:x20parse\x20json\x20request\"}}\n{\"version\":0,\"kind\":\"Unknown\",\"
+SF:status\":\"BadRequest\",\"body\":{\"message\":\"Failed\x20to\x20parse\x
+SF:20json\x20request\"}}\n{\"version\":0,\"kind\":\"Unknown\",\"status\":\
+SF:"BadRequest\",\"body\":{\"message\":\"Failed\x20to\x20parse\x20json\x20
+SF:request\"}}\n{\"version\":0,\"kind\":\"Unknown\",\"status\":\"BadReques
+SF:t\",\"body\":{\"message\":\"Failed\x20to\x20parse\x20json\x20request\"}
+SF:}\n{\"version\":0,\"kind\":\"Unknown\",\"status\":\"BadRequest\",\"body
+SF:\":{\"message\":\"Failed\x20to\x20parse\x20json\x20request\"}}\n{\"vers
+SF:ion\":0,\"kind\":\"Unknown\",\"status\":\"BadRequest\",\"body\":{\"mess
+SF:age\":\"Failed\x20to\x20parse\x20json\x20request\"}}\n{\"version\":0,\"
+SF:kind\":\"Unknown\",\"status\":\"BadRequest\",\"body\":{\"message\":\"Fa
+SF:iled\x20to\x20parse\x20json\x20request\"}}\n{\"version\":0,\"kind\":\"U
+SF:nknown\",\"status\":\"BadRequest\",\"body\":{\"message\":\"Failed\x20to
+SF:\x20parse\x20json\x20request\"}}\n{\"version\":0,\"kind\":\"Unknown\",\
+SF:"status\":\"BadRequest\",\"body\":{\"message\":\"Faile");
+Device type: general purpose
+Running: Microsoft Windows 10
+OS CPE: cpe:/o:microsoft:windows_10
+OS details: Microsoft Windows 10 1809 - 21H2
+Network Distance: 0 hops
+Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
+
+Host script results:
+| smb2-time:
+|   date: 2024-07-29T12:23:16
+|_  start_date: N/A
+|_clock-skew: -3s
+| smb2-security-mode:
+|   3:1:1:
+|_    Message signing enabled but not required
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 197.75 seconds

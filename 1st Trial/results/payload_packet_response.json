@@ -1,0 +1,110 @@
+[
+	{
+		"namespace": "default",
+		"pod": "backend-deployment-65b4c6499f-x6wpw",
+		"pod_ip": "10.244.0.109",
+		"received_response": false
+	},
+	{
+		"namespace": "default",
+		"pod": "frontend-deployment-578ccb956d-z9dq7",
+		"pod_ip": "10.244.0.115",
+		"received_response": false
+	},
+	{
+		"namespace": "default",
+		"pod": "grafana-b5d5cf595-hxl88",
+		"pod_ip": "10.244.0.108",
+		"received_response": false
+	},
+	{
+		"namespace": "default",
+		"pod": "prometheus-alertmanager-0",
+		"pod_ip": "10.244.0.113",
+		"received_response": false
+	},
+	{
+		"namespace": "default",
+		"pod": "prometheus-kube-state-metrics-67848d7455-ms5xb",
+		"pod_ip": "10.244.0.107",
+		"received_response": false
+	},
+	{
+		"namespace": "default",
+		"pod": "prometheus-prometheus-node-exporter-4qq7d",
+		"pod_ip": "192.168.49.2",
+		"received_response": false
+	},
+	{
+		"namespace": "default",
+		"pod": "prometheus-prometheus-pushgateway-58cb869bcc-627j4",
+		"pod_ip": "10.244.0.106",
+		"received_response": false
+	},
+	{
+		"namespace": "default",
+		"pod": "prometheus-server-5787759b8c-46vwd",
+		"pod_ip": "10.244.0.112",
+		"received_response": false
+	},
+	{
+		"namespace": "kube-system",
+		"pod": "coredns-7db6d8ff4d-5jx5d",
+		"pod_ip": "10.244.0.114",
+		"received_response": false
+	},
+	{
+		"namespace": "kube-system",
+		"pod": "etcd-minikube",
+		"pod_ip": "192.168.49.2",
+		"received_response": false
+	},
+	{
+		"namespace": "kube-system",
+		"pod": "kube-apiserver-minikube",
+		"pod_ip": "192.168.49.2",
+		"received_response": false
+	},
+	{
+		"namespace": "kube-system",
+		"pod": "kube-controller-manager-minikube",
+		"pod_ip": "192.168.49.2",
+		"received_response": false
+	},
+	{
+		"namespace": "kube-system",
+		"pod": "kube-proxy-xrd8r",
+		"pod_ip": "192.168.49.2",
+		"received_response": false
+	},
+	{
+		"namespace": "kube-system",
+		"pod": "kube-scheduler-minikube",
+		"pod_ip": "192.168.49.2",
+		"received_response": false
+	},
+	{
+		"namespace": "kube-system",
+		"pod": "metrics-server-c59844bb4-rzncz",
+		"pod_ip": "10.244.0.111",
+		"received_response": false
+	},
+	{
+		"namespace": "kube-system",
+		"pod": "storage-provisioner",
+		"pod_ip": "192.168.49.2",
+		"received_response": false
+	},
+	{
+		"namespace": "kubernetes-dashboard",
+		"pod": "dashboard-metrics-scraper-b5fc48f67-825xv",
+		"pod_ip": "10.244.0.110",
+		"received_response": false
+	},
+	{
+		"namespace": "kubernetes-dashboard",
+		"pod": "kubernetes-dashboard-779776cb65-nkhmv",
+		"pod_ip": "10.244.0.116",
+		"received_response": false
+	}
+]

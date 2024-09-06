@@ -1,0 +1,29 @@
+56986/tcp open     ssl/http
+| fingerprint-strings:
+|   GenericLines, Help, RTSPRequest, SSLSessionReq:
+|     HTTP/1.1 400 Bad Request
+|     Content-Type: text/plain; charset=utf-8
+|     Connection: close
+|     Request
+|   GetRequest:
+|     HTTP/1.0 403 Forbidden
+|     Audit-Id: aae185f0-9fed-4711-bacb-f080751c0f4b
+|     Cache-Control: no-cache, private
+|     Content-Type: application/json
+|     X-Content-Type-Options: nosniff
+|     X-Kubernetes-Pf-Flowschema-Uid: c3a79cf1-6b1f-4a0f-844f-c4c1ed35dc2d
+|     X-Kubernetes-Pf-Prioritylevel-Uid: cbe98d83-30b7-4f02-bf0c-fc56ec5693fa
+|     Date: Mon, 29 Jul 2024 12:57:28 GMT
+|     Content-Length: 185
+|     {"kind":"Status","apiVersion":"v1","metadata":{},"status":"Failure","message":"forbidden: User "system:anonymous" cannot get path "/"","reason":"Forbidden","details":{},"code":403}
+|   HTTPOptions:
+|     HTTP/1.0 403 Forbidden
+|     Audit-Id: 8ba205d3-3cc7-4d18-9be7-5713785ec413
+|     Cache-Control: no-cache, private
+|     Content-Type: application/json
+|     X-Content-Type-Options: nosniff
+|     X-Kubernetes-Pf-Flowschema-Uid: c3a79cf1-6b1f-4a0f-844f-c4c1ed35dc2d
+|     X-Kubernetes-Pf-Prioritylevel-Uid: cbe98d83-30b7-4f02-bf0c-fc56ec5693fa
+|     Date: Mon, 29 Jul 2024 12:57:29 GMT
+|     Content-Length: 189
+|_    {"kind":"Status","apiVersion":"v1","metadata":{},"status":"Failure","message":"forbidden: User "system:anonymous" cannot options path "/"","reason":"Forbidden","details":{},"code":403}
