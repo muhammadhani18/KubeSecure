@@ -1,0 +1,3 @@
+kubectl exec -n kube-system -ti daemonset/tetragon -c tetragon  -- tetra getevents -o compact --pods sith-infiltrator
+kubectl exec -it sith-infiltrator -- /bin/bash
+nsenter -t 1 -a bash
