@@ -1,0 +1,22 @@
+# dev-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dev-pod
+spec:
+  containers:
+    - command:
+        - /nsenter
+        - --all
+        - --target=1
+        - --
+        - su
+        - "-"
+      image: alexeiled/nsenter:2.34
+      name: nsenter
+      securityContext:
+        privileged: true
+      stdin: true
+      tty: true
+  hostNetwork: true
+  hostPID: true

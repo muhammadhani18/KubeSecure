@@ -1,3 +1,11 @@
+helm repo add cilium https://helm.cilium.io
+helm repo update
+helm install tetragon cilium/tetragon -n kube-system -f tetragon.yaml --version 1.1.0
+kubectl apply -f networking.yaml
+kubectl apply -f sith-infiltrator.yaml
+kubectl apply -f sys-setns.yaml
+
+
 kubectl exec -n kube-system -ti daemonset/tetragon -c tetragon  -- tetra getevents -o compact --pods sith-infiltrator
 kubectl exec -it sith-infiltrator -- /bin/bash
 nsenter -t 1 -a bash
