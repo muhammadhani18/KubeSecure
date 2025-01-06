@@ -1,0 +1,167 @@
+/* Container Styling */
+.container {
+    padding: 20px;
+    max-width: 90%;
+    margin: 20px auto;
+    background: var(--background-light);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: rgb(131, 129, 129);
+}
+
+/* Flexbox for Table and Chart */
+.pods-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.pods-table {
+    flex: 1;
+    max-width: 70%;
+}
+
+.pods-chart {
+    flex: 1;
+    max-width: 50%; /* Adjust the maximum width */
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pods-chart:hover {
+    transform: translateY(-5px);
+}
+
+/* Chart Styling */
+.pods-chart canvas {
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+table th, table td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solidrgb(116, 114, 114);
+}
+
+table th {
+    background: var(--primary-color);
+    color: var(--text-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+
+table tr:nth-child(even) {
+    background-color: #545454;
+}
+
+table td {
+    word-wrap: break-word;
+}
+
+/* Hover Effect for Table Rows */
+table tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transition: 0.2s;
+}
+
+/* Responsive Table */
+@media (max-width: 768px) {
+    .pods-container {
+        flex-direction: column;
+    }
+
+    .pods-table, .pods-chart {
+        max-width: 100%;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+/* Add animation for table rows */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+tbody tr {
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.btn {
+    background: var(--gradient-primary);
+    color: var(--text-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transition: 0.5s;
+}
+
+.btn:hover::before {
+    left: 100%;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4);
+}
+
+.loading-skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.1) 25%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.1) 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}

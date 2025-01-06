@@ -1,0 +1,23 @@
+[
+    {
+        "event": "process",
+        "timestamp": "2024-11-27T16:23:22.687449",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /bin/bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2024-11-27T16:23:26.952570",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /usr/bin/nsenter -t 1 -a bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2024-11-27T16:23:26.979638",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /usr/bin/bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    }
+]

@@ -1,0 +1,13 @@
+# File: large_configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: large-configmap
+  namespace: default
+data:
+  key1: value1
+  key2: value2
+  key3: value3
+  key4: value4
+  # Add up to 101 key-value pairs to simulate a large ConfigMap
+  key101: value101
