@@ -1,0 +1,198 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    border: none;
+    outline: none;
+    scroll-behavior: smooth;
+    font-family: 'Poppins', sans-serif;
+}
+
+:root {
+    --bg-color: black;
+    --second-bg-color: #112e42;
+    --text-color: #ededed;
+    --main-color: #00abf0;
+    --primary-color: #4f46e5;
+    --secondary-color: #818cf8;
+    --accent-color: #6366f1;
+    --background-dark: #0f172a;
+    --background-light: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --success-color: #22c55e;
+    --warning-color: #eab308;
+    --error-color: #ef4444;
+    --gradient-primary: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+html {
+    font-size: 62.5%;
+    overflow-x: hidden;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: var(--main-color);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.yaml-form {
+    background-color: var(--second-bg-color);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+input[type="file"] {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    border: 2px solid var(--main-color);
+    border-radius: 4px;
+    font-size: 1rem;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: var(--main-color);
+    color: var(--bg-color);
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-color);
+}
+
+.response {
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: var(--second-bg-color);
+    border-radius: 4px;
+    box-shadow: var(--shadow-sm);
+}
+
+.response pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.error {
+    color: var(--error-color);
+    font-weight: 600;
+}
+
+
+        /* Custom table styling */
+        .response-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+            background-color: var(--background-light);
+            box-shadow: var(--shadow-md);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .response-table th, .response-table td {
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .response-table th {
+            background-color: var(--warning-color);
+            color: var(--text-primary);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .response-table tr:nth-child(even) {
+            background-color: var(--background-dark);
+        }
+
+        .response-table tr:nth-child(odd) {
+            background-color: var(--second-bg-color);
+        }
+
+        .response-table td {
+            color: var(--text-secondary);
+        }
+
+        .response-table td.warning {
+            color: var(--error-color);
+            font-weight: bold;
+        }
+
+        /* Enhanced input styling */
+        input[type="file"] {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            background-color: var(--background-light);
+            border: 2px dashed var(--main-color);
+            border-radius: 6px;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+        }
+
+        input[type="file"]:hover {
+            border-color: var(--accent-color);
+            background-color: var(--second-bg-color);
+        }
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    .yaml-form {
+        padding: 1.5rem;
+    }
+}
