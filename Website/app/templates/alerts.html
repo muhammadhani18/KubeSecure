@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cluster Alerts</title>
+    <link rel="stylesheet" href="/static/css/navbar.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #0f172a; /* Dark background */
+            color: #cbd5e1; /* Secondary text color */
+            line-height: 1.6;
+            font-size: 1.6rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            color: #00abf0;
+            margin-bottom: 2rem;
+        }
+
+        /* Table styling */
+        .alerts-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #1e293b; /* Light dark background for table */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .alerts-table th, .alerts-table td {
+            padding: 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #2d3748;
+        }
+
+        .alerts-table th {
+            background-color: #4f46e5; /* Primary color */
+            color: #f8fafc; /* Light text color */
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .alerts-table tr:nth-child(even) {
+            background-color: #27364a;
+        }
+
+        .alerts-table tr:nth-child(odd) {
+            background-color: #1e293b;
+        }
+
+        .alerts-table td {
+            color: #cbd5e1;
+        }
+
+        .alerts-table td.severity-critical {
+            color: #ef4444; /* Red for critical severity */
+            font-weight: bold;
+        }
+
+        .alerts-table td.severity-warning {
+            color: #eab308; /* Yellow for warning severity */
+            font-weight: bold;
+        }
+
+        .alerts-table td.severity-info {
+            color: #22c55e; /* Green for info severity */
+            font-weight: bold;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .alerts-table th, .alerts-table td {
+                padding: 1rem;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/home" class="brand">
+            <img src="/static/Images/Logo.png" alt="Logo">
+            KubeSecure
+        </a>
+        <ul>
+            <li><a href="/table">Cluster Events</a></li>
+            <li><a href="/alerts">Alerts</a></li>
+            <li><a href="http://localhost:8080" target="_blank">Grafana</a></li>
+            <li><a href="yaml-validate" target="_blank">YAML Validator</a></li>
+            <li><a href="/">Login</a></li>
+        </ul>
+    </div>
+    <div class="container">
+        <h1>Cluster Alerts</h1>
+        <table class="alerts-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Severity</th>
+                    <th>Resource</th>
+                    <th>Namespace</th>
+                    <th>Description</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td class="severity-critical">Critical</td>
+                    <td>Pod/privileged-pod</td>
+                    <td>default</td>
+                    <td>Pod is running with privileged mode enabled.</td>
+                    <td>2025-01-06 10:00:00</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td class="severity-warning">Warning</td>
+                    <td>Deployment/nginx-deployment</td>
+                    <td>production</td>
+                    <td>Missing resource requests and limits for containers.</td>
+                    <td>2025-01-06 09:45:00</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td class="severity-info">Info</td>
+                    <td>Service/backend-service</td>
+                    <td>staging</td>
+                    <td>No liveness probe configured for the service.</td>
+                    <td>2025-01-06 09:30:00</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td class="severity-critical">Critical</td>
+                    <td>Node/ip-192-168-1-1</td>
+                    <td>default</td>
+                    <td>Node is running low on disk space.</td>
+                    <td>2025-01-06 09:15:00</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td class="severity-warning">Warning</td>
+                    <td>Pod/test-pod</td>
+                    <td>development</td>
+                    <td>Pod is missing readiness probe.</td>
+                    <td>2025-01-06 09:00:00</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script type="module">
+  
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js";
+      
+        const firebaseConfig = {
+          apiKey: "AIzaSyC04JstYtPhKAEbXzYv6KkyRqxHnbsuQ9A",
+          authDomain: "kube-2e93f.firebaseapp.com",
+          projectId: "kube-2e93f",
+          storageBucket: "kube-2e93f.firebasestorage.app",
+          messagingSenderId: "129547489281",
+          appId: "1:129547489281:web:f799c977b247dcc940f000",
+          measurementId: "G-9KXMW1DVFX"
+        };
+      
+        
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+      </script>
+</body>
+</html>

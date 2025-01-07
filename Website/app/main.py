@@ -32,6 +32,10 @@ users_db = {
 def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "message": ""})
 
+@app.get("/alerts", response_class=HTMLResponse)
+def read_root(request: Request):
+    return templates.TemplateResponse("alerts.html", {"request": request, "message": ""})
+
 @app.post("/login", response_class=HTMLResponse)
 def login(request: Request, email: str = Form(...), password: str = Form(...)):
     if email in users_db and users_db[email] == password:
