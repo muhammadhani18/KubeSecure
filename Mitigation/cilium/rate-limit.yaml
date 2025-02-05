@@ -1,0 +1,17 @@
+apiVersion: "cilium.io/v2"
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: "global-rate-limit"
+spec:
+  endpointSelector: {}  # Applies to all pods in all namespaces
+  ingress:
+    - fromEntities:
+        - all  # Applies to traffic from any external entity
+      toPorts:
+        - ports:
+            - port: "80"   # Apply to HTTP traffic (Change as needed)
+              protocol: TCP
+          rules:
+            rateLimit:
+              average: 50   # Allow 50 requests per second globally
+              burst: 100    # Allow temporary bursts of 100 requests
