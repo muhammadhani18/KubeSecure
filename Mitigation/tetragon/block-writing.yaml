@@ -1,0 +1,21 @@
+apiVersion: "cilium.io/v1alpha1"
+kind: TracingPolicy
+metadata:
+  name: "block-sensitive-directory-write"
+spec:
+  kprobes:
+    - call: "do_filp_open"
+      syscall: true
+      args:
+        - index: 0
+          type: "string"
+      selectors:
+        - matchArgs:
+            - index: 0
+              operator: "Prefix"
+              values:
+                - "/etc/"
+                - "/bin/"
+                - "/usr/bin/"
+                - "/lib/"
+      action: "Deny"

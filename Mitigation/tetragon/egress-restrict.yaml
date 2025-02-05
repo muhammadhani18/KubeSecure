@@ -1,0 +1,19 @@
+apiVersion: "cilium.io/v1alpha1"
+kind: TracingPolicy
+metadata:
+  name: "restrict-outbound-traffic"
+spec:
+  kprobes:
+    - call: "connect"
+      syscall: true
+      args:
+        - index: 0
+          type: "int"
+      selectors:
+        - matchArgs:
+            - index: 0
+              operator: "In"
+              values:
+                - "443"  # Block HTTPS connections
+                - "80"   # Block HTTP connections
+      action: "Deny"

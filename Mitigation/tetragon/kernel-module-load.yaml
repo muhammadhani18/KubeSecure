@@ -1,0 +1,21 @@
+apiVersion: "cilium.io/v1alpha1"
+kind: TracingPolicy
+metadata:
+  name: "block-kernel-module-loading"
+spec:
+  kprobes:
+    - call: "do_execve"
+      syscall: true
+      args:
+        - index: 0
+          type: "string"
+      selectors:
+        - matchArgs:
+            - index: 0
+              operator: "In"
+              values:
+                - "/sbin/insmod"
+                - "/sbin/modprobe"
+                - "/usr/bin/insmod"
+                - "/usr/bin/modprobe"
+      action: "Deny"

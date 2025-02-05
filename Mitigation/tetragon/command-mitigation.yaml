@@ -1,0 +1,33 @@
+apiVersion: "cilium.io/v1alpha1"
+kind: TracingPolicy
+metadata:
+  name: "block-malicious-commands"
+spec:
+  kprobes:
+    - call: "do_execve"
+      syscall: true
+      args:
+        - index: 0
+          type: "string"
+      selectors:
+        - matchArgs:
+            - index: 0
+              operator: "In"
+              values:
+                - "/usr/bin/mkfifo"
+                - "/bin/mkfifo"
+                - "/usr/bin/curl"
+                - "/bin/curl"
+                - "/usr/bin/wget"
+                - "/bin/wget"
+                - "/usr/bin/nc"
+                - "/bin/nc"
+                - "/usr/bin/ncat"
+                - "/bin/ncat"
+                - "/usr/bin/socat"
+                - "/bin/socat"
+                - "/usr/bin/bash"
+                - "/bin/bash"
+                - "/usr/bin/sh"
+                - "/bin/sh"
+      action: "Kill"  # Prevents execution of the blocked commands

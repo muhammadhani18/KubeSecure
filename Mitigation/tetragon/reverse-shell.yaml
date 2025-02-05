@@ -1,0 +1,27 @@
+apiVersion: "cilium.io/v1alpha1"
+kind: TracingPolicy
+metadata:
+  name: "block-reverse-shell"
+spec:
+  kprobes:
+    - call: "do_execve"
+      syscall: true
+      args:
+        - index: 0
+          type: "string"
+      selectors:
+        - matchArgs:
+            - index: 0
+              operator: "In"
+              values:
+                - "/bin/nc"
+                - "/usr/bin/nc"
+                - "/bin/ncat"
+                - "/usr/bin/ncat"
+                - "/bin/socat"
+                - "/usr/bin/socat"
+                - "/bin/bash"
+                - "/usr/bin/bash"
+                - "/bin/sh"
+                - "/usr/bin/sh"
+      action: "Kill"

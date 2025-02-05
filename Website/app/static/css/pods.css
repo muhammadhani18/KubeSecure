@@ -1,3 +1,45 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    border: none;
+    outline: none;
+    scroll-behavior: smooth;
+    font-family: 'Poppins', sans-serif;
+}
+
+:root {
+    --bg-color: black;
+    --second-bg-color: #112e42;
+    --text-color: #ededed;
+    --main-color: #00abf0;
+    --primary-color: #4f46e5;
+    --secondary-color: #818cf8;
+    --accent-color: #6366f1;
+    --background-dark: #0f172a;
+    --background-light: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --success-color: #22c55e;
+    --warning-color: #eab308;
+    --error-color: #ef4444;
+    --gradient-primary: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+html {
+    font-size: 62.5%;
+    overflow-x: hidden;
+}
+
+body {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
 /* Container Styling */
 .container {
     padding: 20px;
@@ -54,12 +96,14 @@ table {
     border-radius: 1rem;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    
 }
 
 table th, table td {
     text-align: left;
     padding: 12px;
     border-bottom: 1px solidrgb(116, 114, 114);
+    
 }
 
 table th {
