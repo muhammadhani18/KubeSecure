@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Tetragon Policies</title>
     <link rel="stylesheet" href="/static/css/navbar.css">
     <link rel="stylesheet" href="/static/css/Style.css">
 
@@ -24,7 +24,7 @@
             <li><a href="/alerts">Alerts</a></li>
             <li><a href="http://localhost:8080" target="_blank">Grafana</a></li>
             <li><a href="yaml-validate" target="_blank">Yaml Validator</a></li>
-            <li><a href="/">Login</a></li>
+            <li><a href="/policy">Policy Enforcement</a></li>
         </ul>
     </div>
 
@@ -68,7 +68,15 @@
     
         <span class="animate home-img" style="--i:7;"></span>
     </section>
-    
+    <footer class="footer">
+        <div class="footer-text">
+            <p>Copyright &copy; 2025 KubeSecure | All Rights Reserved.</p>
+        </div>
+
+        <div class="footer-iconTop">
+            <a href="#"><i class='bx bx-up-arrow-alt'></i></a>
+        </div>
+    </footer>
     <!-- footer design -->
     <script>
         // Function to clear browser history
@@ -84,6 +92,39 @@
         window.onload = clearHistory;
     </script>
     <script src="/static/javascript/script.js"></script>
+    <!-- scroll reveal -->
+    <script src="https://unpkg.com/scrollreveal"></script>
+
+    <!-- custom js -->
+    <script>
+        // Toggle menu icon navbar
+        let menuIcon = document.querySelector('#menu-icon');
+        let navbar = document.querySelector('.navbar');
+
+        menuIcon.onclick = () => {
+            menuIcon.classList.toggle('bx-x');
+            navbar.classList.toggle('active');
+        };
+
+        // Remove toggle icon and navbar when clicking navbar links (scroll)
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                menuIcon.classList.remove('bx-x');
+                navbar.classList.remove('active');
+            });
+        });
+        
+        // ScrollReveal animations
+        ScrollReveal({
+            reset: true,
+            distance: '80px',
+            duration: 2000,
+            delay: 200
+        });
+        
+        ScrollReveal().reveal('.policy-heading', { origin: 'top' });
+        ScrollReveal().reveal('.policy-card', { origin: 'bottom' });
+    </script>
 </body>
 
 </html>

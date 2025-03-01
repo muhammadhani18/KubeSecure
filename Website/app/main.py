@@ -190,3 +190,7 @@ async def detect_smells(file: UploadFile):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+
+@app.get("/policy", response_class=HTMLResponse)
+def show_pods_table(request: Request):
+    return templates.TemplateResponse("policy.html", {"request": request})

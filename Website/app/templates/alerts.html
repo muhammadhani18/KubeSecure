@@ -17,41 +17,42 @@
             background-color: #0f172a; /* Dark background */
             color: #cbd5e1; /* Secondary text color */
             line-height: 1.6;
-            font-size: 1.6rem;
+            font-size: 1.2rem; /* Reduced font size */
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 900px;
             margin: 2rem auto;
-            padding: 2rem;
+            padding: 1.5rem;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 2rem;
             text-align: center;
             color: #00abf0;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         /* Table styling */
         .alerts-table {
             width: 100%;
             border-collapse: collapse;
-            background-color: #1e293b; /* Light dark background for table */
+            background-color: #1e293b;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
             border-radius: 8px;
             overflow: hidden;
+            font-size: 1rem; /* Smaller text */
         }
 
         .alerts-table th, .alerts-table td {
-            padding: 1.5rem;
+            padding: 1rem;
             text-align: left;
             border-bottom: 1px solid #2d3748;
         }
 
         .alerts-table th {
-            background-color: #4f46e5; /* Primary color */
-            color: #f8fafc; /* Light text color */
+            background-color: #4f46e5;
+            color: #f8fafc;
             text-transform: uppercase;
             font-weight: bold;
         }
@@ -68,28 +69,13 @@
             color: #cbd5e1;
         }
 
-        .alerts-table td.severity-critical {
-            color: #ef4444; /* Red for critical severity */
-            font-weight: bold;
-        }
-
-        .alerts-table td.severity-warning {
-            color: #eab308; /* Yellow for warning severity */
-            font-weight: bold;
-        }
-
-        .alerts-table td.severity-info {
-            color: #22c55e; /* Green for info severity */
-            font-weight: bold;
-        }
-
         /* Responsive design */
         @media (max-width: 768px) {
             .alerts-table th, .alerts-table td {
-                padding: 1rem;
+                padding: 0.8rem;
             }
             h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
         }
     </style>
@@ -108,81 +94,63 @@
             <li><a href="/">Login</a></li>
         </ul>
     </div>
+
     <div class="container">
         <h1>Cluster Alerts</h1>
         <table class="alerts-table">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Severity</th>
-                    <th>Resource</th>
-                    <th>Namespace</th>
-                    <th>Description</th>
+                    <th>Message</th>
                     <th>Timestamp</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td class="severity-critical">Critical</td>
-                    <td>Pod/privileged-pod</td>
-                    <td>default</td>
-                    <td>Pod is running with privileged mode enabled.</td>
-                    <td>2025-01-06 10:00:00</td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td class="severity-warning">Warning</td>
-                    <td>Deployment/nginx-deployment</td>
-                    <td>production</td>
-                    <td>Missing resource requests and limits for containers.</td>
-                    <td>2025-01-06 09:45:00</td>
-                </tr>
-                <tr>
-                    <td>3</td>
-                    <td class="severity-info">Info</td>
-                    <td>Service/backend-service</td>
-                    <td>staging</td>
-                    <td>No liveness probe configured for the service.</td>
-                    <td>2025-01-06 09:30:00</td>
-                </tr>
-                <tr>
-                    <td>4</td>
-                    <td class="severity-critical">Critical</td>
-                    <td>Node/ip-192-168-1-1</td>
-                    <td>default</td>
-                    <td>Node is running low on disk space.</td>
-                    <td>2025-01-06 09:15:00</td>
-                </tr>
-                <tr>
-                    <td>5</td>
-                    <td class="severity-warning">Warning</td>
-                    <td>Pod/test-pod</td>
-                    <td>development</td>
-                    <td>Pod is missing readiness probe.</td>
-                    <td>2025-01-06 09:00:00</td>
-                </tr>
+            <tbody id="alerts-body">
+                <!-- Alerts will be dynamically added here -->
             </tbody>
         </table>
     </div>
+
+    <!-- Firebase Configuration -->
     <script type="module">
-  
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js";
-      
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
         const firebaseConfig = {
-          apiKey: "AIzaSyC04JstYtPhKAEbXzYv6KkyRqxHnbsuQ9A",
-          authDomain: "kube-2e93f.firebaseapp.com",
-          projectId: "kube-2e93f",
-          storageBucket: "kube-2e93f.firebasestorage.app",
-          messagingSenderId: "129547489281",
-          appId: "1:129547489281:web:f799c977b247dcc940f000",
-          measurementId: "G-9KXMW1DVFX"
+            apiKey: "AIzaSyC04JstYtPhKAEbXzYv6KkyRqxHnbsuQ9A",
+            authDomain: "kube-2e93f.firebaseapp.com",
+            databaseURL: "https://kube-2e93f-default-rtdb.firebaseio.com/",
+            projectId: "kube-2e93f",
+            storageBucket: "kube-2e93f.appspot.com",
+            messagingSenderId: "129547489281",
+            appId: "1:129547489281:web:f799c977b247dcc940f000",
+            measurementId: "G-9KXMW1DVFX"
         };
-      
-        
+
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-      </script>
+        const database = getDatabase(app);
+        const alertsRef = ref(database, "alerts");
+
+        // Function to fetch and update table dynamically
+        onValue(alertsRef, (snapshot) => {
+            const alertsTable = document.getElementById("alerts-body");
+            alertsTable.innerHTML = ""; // Clear table before updating
+            let index = 1;
+
+            snapshot.forEach((childSnapshot) => {
+                const alert = childSnapshot.val();
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${index++}</td>
+                    <td>${alert.message}</td>
+                    <td>${new Date(alert.timestamp).toLocaleString()}</td>
+                `;
+
+                alertsTable.appendChild(row);
+            });
+        });
+    </script>
 </body>
 </html>

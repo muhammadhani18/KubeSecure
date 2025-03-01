@@ -1,7 +1,7 @@
 apiVersion: "cilium.io/v1alpha1"
 kind: TracingPolicy
 metadata:
-  name: "block-writing"
+  name: "block-reverse-shell"
 spec:
   kprobes:
     - call: "sys_execve"  # Changed from do_execve to execve
@@ -14,13 +14,21 @@ spec:
             - index: 0
               operator: "Equal"
               values:
-                - "/usr/bin/mkdir"
+                - "/bin/sh"
           matchActions:
             - action: Sigkill
         - matchArgs:
             - index: 0
               operator: "Equal"
               values:
-                - "/usr/bin/touch"
+                - "/usr/bin/sh"
+          matchActions:
+            - action: Sigkill
+        
+        - matchArgs:
+            - index: 0
+              operator: "Equal"
+              values:
+                - "/usr/bin/curl"
           matchActions:
             - action: Sigkill

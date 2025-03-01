@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Policy Enforcement | KubeSecure</title>
+    <link rel="stylesheet" href="/static/css/Style.css">
+    <link rel="stylesheet" href="/static/css/navbar.css">
+    
+    <!-- box icons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <style>
+        .policy-section {
+            min-height: 50vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10rem 9% 2rem;
+        }
+        
+        .policy-heading {
+            font-size: 4.5rem;
+            margin-bottom: 5rem;
+            text-align: center;
+        }
+        
+        .policy-heading span {
+            color: var(--main-color);
+        }
+        
+        .policy-card {
+            background: var(--second-bg-color);
+            border-radius: 1.5rem;
+            padding: 4rem;
+            width: 100%;
+            max-width: 60rem;
+            box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.3);
+            border: .2rem solid var(--main-color);
+            margin-bottom: 4rem;
+            position: relative;
+        }
+        
+        .policy-form .input-field {
+            margin-bottom: 2.5rem;
+        }
+        
+        .policy-form .input-field input {
+            width: 100%;
+            height: 5rem;
+            padding: 1.5rem;
+            font-size: 1.8rem;
+            color: var(--text-color);
+            background: var(--bg-color);
+            border-radius: .8rem;
+            border: .2rem solid var(--main-color);
+            transition: all .3s ease;
+        }
+        
+        .policy-form .input-field input:focus {
+            box-shadow: 0 0 1rem var(--main-color);
+        }
+        
+        .policy-form .input-field label {
+            display: block;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .policy-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 3rem;
+        }
+        
+        .policy-btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 20rem;
+            height: 5rem;
+            background: var(--main-color);
+            border: .2rem solid var(--main-color);
+            border-radius: .8rem;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: .1rem;
+            color: var(--bg-color);
+            cursor: pointer;
+            z-index: 1;
+            overflow: hidden;
+            transition: .5s;
+            position: relative;
+        }
+        
+        .policy-btn:hover {
+            color: var(--main-color);
+        }
+        
+        .policy-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: var(--bg-color);
+            z-index: -1;
+            transition: .5s;
+        }
+        
+        .policy-btn:hover::before {
+            width: 100%;
+        }
+
+        /* Success message styling */
+        .success-message {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--second-bg-color);
+            border-radius: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+            transform: scale(0.9);
+            z-index: 10;
+            padding: 4rem;
+        }
+
+        .success-message.show {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+        }
+
+        .success-icon {
+            font-size: 8rem;
+            color: var(--success-color);
+            margin-bottom: 2rem;
+            animation: pulse 2s infinite;
+        }
+
+        .success-title {
+            font-size: 3rem;
+            color: var(--main-color);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .success-text {
+            font-size: 1.8rem;
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .success-btn {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 20rem;
+            height: 5rem;
+            background: var(--main-color);
+            border: .2rem solid var(--main-color);
+            border-radius: .8rem;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: .1rem;
+            color: var(--bg-color);
+            cursor: pointer;
+            z-index: 1;
+            overflow: hidden;
+            transition: .5s;
+            position: relative;
+        }
+
+        .success-btn:hover {
+            color: var(--main-color);
+        }
+
+        .success-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: var(--bg-color);
+            z-index: -1;
+            transition: .5s;
+        }
+
+        .success-btn:hover::before {
+            width: 100%;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .checkmark {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: block;
+            stroke-width: 3;
+            stroke: var(--success-color);
+            stroke-miterlimit: 10;
+            box-shadow: 0 0 0 var(--success-color);
+            animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+            margin-bottom: 2rem;
+        }
+
+        .checkmark__circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 3;
+            stroke-miterlimit: 10;
+            stroke: var(--success-color);
+            fill: none;
+            animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+
+        .checkmark__check {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+        }
+
+        @keyframes stroke {
+            100% {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes scale {
+            0%, 100% {
+                transform: none;
+            }
+            50% {
+                transform: scale3d(1.1, 1.1, 1);
+            }
+        }
+
+        @keyframes fill {
+            100% {
+                box-shadow: inset 0 0 0 40px var(--success-color);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/home" class="brand">
+            <img src="/static/Images/Logo.png" alt="Logo"> <!-- Path to your logo image -->
+            KubeSecure
+        </a>
+        <ul>
+            <li><a href="/table">Cluster Events</a></li>
+            <li><a href="/alerts">Alerts</a></li>
+            <li><a href="http://localhost:8080" target="_blank">Grafana</a></li>
+            <li><a href="yaml-validate" target="_blank">Yaml Validator</a></li>
+            <li><a href="/">Login</a></li>
+        </ul>
+    </div>
+
+    <section class="policy-section">
+        <h2 class="policy-heading">Enforce <span>Tetragon Policies</span></h2>
+
+        <div class="policy-card">
+            <form id="policy-form" class="policy-form">
+                <div class="input-field">
+                    <label for="policy-name">Policy Name</label>
+                    <input type="text" id="policy-name" name="policy-name" placeholder="Enter policy name..." required>
+                </div>
+                
+                <div class="input-field">
+                    <label for="command-path">Full Path of the Command</label>
+                    <input type="text" id="command-path" name="command-path" placeholder="Enter command path..." required>
+                </div>
+                
+                <div class="policy-btn-container">
+                    <button id="form-btn" type="submit" class="policy-btn">Submit Policy</button>
+                </div>
+            </form>
+
+            <!-- Success message overlay -->
+            <div class="success-message" id="success-message">
+                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                    <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+                <h3 class="success-title">Policy Created Successfully!</h3>
+                <p class="success-text">Your Tetragon policy has been created and applied to the cluster. The system will start enforcing this policy immediately.</p>
+                <button class="success-btn" id="continue-btn">Continue</button>
+            </div>
+        </div>
+    </section>
+
+    
+    <!-- custom js -->
+    <script>
+        
+        // Form submission and success message
+        document.getElementById('form-btn').addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent actual form submission
+            
+            console.log("Entered");
+            
+            // Show success message with animation
+            document.getElementById('success-message').classList.add('show');
+            
+            
+        });
+        
+        // Continue button functionality
+        document.getElementById('continue-btn').addEventListener('click', function() {
+            // Hide success message
+            document.getElementById('success-message').classList.remove('show');
+            
+            // Reset the form
+            document.getElementById('policy-form').reset();
+        });
+    </script>
+</body>
+</html>
