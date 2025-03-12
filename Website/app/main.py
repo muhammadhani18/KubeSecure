@@ -117,55 +117,122 @@ def detect_code_smells(manifests):
         if not isinstance(manifest, dict):
             continue
 
-        kind = manifest.get('kind', 'Unknown')
-        metadata = manifest.get('metadata', {})
-        name = metadata.get('name', 'Unknown')
-        namespace = metadata.get('namespace', 'default')
-        spec = manifest.get('spec', {})
+        kind = manifest.get("kind", "Unknown")
+        metadata = manifest.get("metadata", {})
+        name = metadata.get("name", "Unknown")
+        namespace = metadata.get("namespace", "default")
+        spec = manifest.get("spec", {})
 
-        # Detect hardcoded values (example: using 'latest' tag)
-        if 'containers' in spec:
-            for container in spec['containers']:
-                image = container.get('image', '')
-                if ':latest' in image or image == 'latest':
-                    smells.append(f"[Hardcoded Value] {kind}/{name} in namespace {namespace} uses 'latest' tag for image {image}.")
+        # Detect hardcoded values (e.g., using 'latest' tag in images)
+        if "containers" in spec:
+            for container in spec["containers"]:
+                image = container.get("image", "")
+                if ":latest" in image or image == "latest":
+                    smells.append(
+                        f"[Hardcoded Value] {kind}/{name} in namespace {namespace} uses 'latest' tag for image {image}."
+                    )
 
         # Detect missing resource requests and limits
-        if 'containers' in spec:
-            for container in spec['containers']:
-                resources = container.get('resources', {})
-                if 'requests' not in resources or 'limits' not in resources:
-                    smells.append(f"[Resource Smell] {kind}/{name} in namespace {namespace} is missing resource requests or limits.")
+        if "containers" in spec:
+            for container in spec["containers"]:
+                resources = container.get("resources", {})
+                if "requests" not in resources or "limits" not in resources:
+                    smells.append(
+                        f"[Resource Smell] {kind}/{name} in namespace {namespace} is missing resource requests or limits."
+                    )
 
         # Detect overprivileged pods
-        if kind == 'Pod' and spec.get('securityContext', {}).get('privileged', False):
-            smells.append(f"[Overprivileged Pod] {kind}/{name} in namespace {namespace} is running as privileged.")
+        if kind == "Pod" and spec.get("securityContext", {}).get("privileged", False):
+            smells.append(
+                f"[Overprivileged Pod] {kind}/{name} in namespace {namespace} is running as privileged."
+            )
 
         # Detect missing probes
-        if 'containers' in spec:
-            for container in spec['containers']:
-                if 'livenessProbe' not in container:
-                    smells.append(f"[Health Check] {kind}/{name} in namespace {namespace} is missing a livenessProbe.")
-                if 'readinessProbe' not in container:
-                    smells.append(f"[Health Check] {kind}/{name} in namespace {namespace} is missing a readinessProbe.")
+        if "containers" in spec:
+            for container in spec["containers"]:
+                if "livenessProbe" not in container:
+                    smells.append(
+                        f"[Health Check] {kind}/{name} in namespace {namespace} is missing a livenessProbe."
+                    )
+                if "readinessProbe" not in container:
+                    smells.append(
+                        f"[Health Check] {kind}/{name} in namespace {namespace} is missing a readinessProbe."
+                    )
 
         # Detect large ConfigMaps
-        if kind == 'ConfigMap':
-            data = manifest.get('data', {})
+        if kind == "ConfigMap":
+            data = manifest.get("data", {})
             if len(data) > 100:  # Arbitrary threshold
-                smells.append(f"[Large ConfigMap] {kind}/{name} in namespace {namespace} has a large number of entries ({len(data)}).")
+                smells.append(
+                    f"[Large ConfigMap] {kind}/{name} in namespace {namespace} has a large number of entries ({len(data)})."
+                )
 
         # Detect secrets in plain text
-        if kind == 'Secret':
-            data = manifest.get('data', {})
+        if kind == "Secret":
+            data = manifest.get("data", {})
             if any(len(value) > 100 for value in data.values()):  # Arbitrary threshold
-                smells.append(f"[Secret Smell] {kind}/{name} in namespace {namespace} has potentially large plain-text entries.")
+                smells.append(
+                    f"[Secret Smell] {kind}/{name} in namespace {namespace} has potentially large plain-text entries."
+                )
 
         # Detect using default namespace
-        if namespace == 'default':
+        if namespace == "default":
             smells.append(f"[Namespace Smell] {kind}/{name} is in the default namespace.")
 
+        # Detect running as root
+        if "containers" in spec:
+            for container in spec["containers"]:
+                security_context = container.get("securityContext", {})
+                if security_context.get("runAsUser", 0) == 0:
+                    smells.append(
+                        f"[Security Risk] {kind}/{name} in namespace {namespace} runs as root (runAsUser=0)."
+                    )
+
+        # Detect privilege escalation
+        if "containers" in spec:
+            for container in spec["containers"]:
+                security_context = container.get("securityContext", {})
+                if security_context.get("allowPrivilegeEscalation", True):
+                    smells.append(
+                        f"[Security Risk] {kind}/{name} in namespace {namespace} allows privilege escalation."
+                    )
+
+        # Detect wildcard roles in RoleBindings/ClusterRoleBindings
+        if kind in ["RoleBinding", "ClusterRoleBinding"]:
+            subjects = manifest.get("subjects", [])
+            for subject in subjects:
+                if subject.get("kind") == "Group" and subject.get("name") in ["system:authenticated", "system:unauthenticated"]:
+                    smells.append(
+                        f"[RBAC Smell] {kind}/{name} in namespace {namespace} binds a role to a wildcard group ({subject.get('name')})."
+                    )
+
+        # Detect use of hostPath (which can break container isolation)
+        if "volumes" in spec:
+            for volume in spec["volumes"]:
+                if "hostPath" in volume:
+                    smells.append(
+                        f"[Security Risk] {kind}/{name} in namespace {namespace} uses a hostPath volume, which can compromise security."
+                    )
+
+        # Detect high replica count for Deployments
+        if kind == "Deployment":
+            replicas = spec.get("replicas", 1)
+            if replicas > 100:  # Arbitrary high threshold
+                smells.append(
+                    f"[Scaling Issue] {kind}/{name} in namespace {namespace} has a high replica count ({replicas}), which might be excessive."
+                )
+
+        # Detect containers without security policies
+        if "containers" in spec:
+            for container in spec["containers"]:
+                security_context = container.get("securityContext", {})
+                if not security_context:
+                    smells.append(
+                        f"[Security Risk] {kind}/{name} in namespace {namespace} lacks a security context."
+                    )
+
     return smells
+
 
 @app.get("/yaml-validate", response_class=HTMLResponse)
 def show_pods_table(request: Request):

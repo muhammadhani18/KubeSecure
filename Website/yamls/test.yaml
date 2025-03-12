@@ -1,0 +1,87 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: insecure-pod
+  namespace: default
+spec:
+  containers:
+    - name: insecure-container
+      image: nginx:latest  # Hardcoded latest tag
+      securityContext:
+        privileged: true  # Overprivileged Pod
+        runAsUser: 0  # Running as root
+        allowPrivilegeEscalation: true  # Privilege escalation allowed
+      resources: {}  # Missing resource requests and limits
+      livenessProbe:  # Missing readinessProbe
+        httpGet:
+          path: /
+          port: 80
+  volumes:
+    - name: insecure-volume
+      hostPath:  # Using hostPath, security risk
+        path: /etc/password
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: high-replica-deployment
+  namespace: default
+spec:
+  replicas: 150  # Excessive replicas
+  selector:
+    matchLabels:
+      app: test
+  template:
+    metadata:
+      labels:
+        app: test
+    spec:
+      containers:
+        - name: app-container
+          image: myapp:v1
+          securityContext: {}  # Missing security context
+          resources:
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+            requests:
+              cpu: "0.5"
+              memory: "256Mi"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: large-configmap
+  namespace: test
+data:
+  key1: value1
+  key2: value2
+  key3: value3
+  # Adding more than 100 entries (not fully listed here)
+  key100: value100
+  key101: value101  # Large ConfigMap detection
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: plain-text-secret
+  namespace: default
+data:
+  password: "c3VwZXJzZWNyZXQ="  # Base64-encoded, but still a large secret entry
+  key1: "bG9uZ3ZhbHVl"  # Large plain text secret
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wildcard-clusterrolebinding
+subjects:
+  - kind: Group
+    name: system:authenticated  # Wildcard RBAC binding
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
