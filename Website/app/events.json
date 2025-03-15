@@ -1,21 +1,105 @@
 [
     {
         "event": "process",
-        "timestamp": "2024-11-27T16:23:22.687449",
+        "timestamp": "2025-03-15T22:30:00.668325",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /usr/bin/bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2025-03-15T17:53:11.052292",
         "pod": "sith-infiltrator",
         "command": "default/sith-infiltrator /bin/bash",
         "capabilities": "CAP_SYS_ADMIN"
     },
     {
         "event": "process",
-        "timestamp": "2024-11-27T16:23:26.952570",
+        "timestamp": "2025-03-15T17:53:12.442902",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /usr/bin/bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2025-03-15T17:53:23.290160",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /bin/bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2025-03-15T17:53:29.304061",
         "pod": "sith-infiltrator",
         "command": "default/sith-infiltrator /usr/bin/nsenter -t 1 -a bash",
         "capabilities": "CAP_SYS_ADMIN"
     },
     {
         "event": "process",
-        "timestamp": "2024-11-27T16:23:26.979638",
+        "timestamp": "2025-03-15T17:53:34.873999",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /bin/bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2025-03-15T17:53:34.914469",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /usr/bin/nsenter -t 1 -a bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2025-03-15T17:53:40.873069",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /usr/bin/nsenter -t 1 -a bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2025-03-15T17:53:52.875506",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /usr/bin/nsenter -t 1 -a bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2025-03-15T17:53:52.877143",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /usr/bin/bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2025-03-15T17:53:56.876410",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /bin/bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2025-03-15T17:53:58.875487",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /usr/bin/bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2025-03-15T18:29:32.354106",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /bin/bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2025-03-15T18:29:36.361853",
+        "pod": "sith-infiltrator",
+        "command": "default/sith-infiltrator /usr/bin/nsenter -t 1 -a bash",
+        "capabilities": "CAP_SYS_ADMIN"
+    },
+    {
+        "event": "process",
+        "timestamp": "2025-03-15T18:29:36.956399",
         "pod": "sith-infiltrator",
         "command": "default/sith-infiltrator /usr/bin/bash",
         "capabilities": "CAP_SYS_ADMIN"

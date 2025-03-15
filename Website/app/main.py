@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form,UploadFile
+from fastapi import FastAPI, Request, Form,UploadFile, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -14,8 +14,27 @@ import datetime
 import yaml
 import tempfile
 import os
+import datetime 
+from kubernetes import client, config
+from pydantic import BaseModel
+from typing import Dict, List
  
 app = FastAPI()
+# Load Kubernetes config (use 'inClusterConfig()' if running inside a cluster)
+config.load_kube_config()
+
+v1 = client.CoreV1Api()
+
+
+# Define response model
+class ClusterInfoResponse(BaseModel):
+    totalNodes: int
+    totalPods: int
+    totalNamespaces: int
+    podsPerNamespace: Dict[str, int]
+    nodeStatuses: Dict[str, int]
+    resourceUsage: List[Dict[str, str]]
+
 
 # Mount static files at "/static"
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -62,6 +81,63 @@ def welcome(request: Request):
 def show_pods_table(request: Request):
     return templates.TemplateResponse("pods.html", {"request": request})
 
+@app.get("/api/cluster-info", response_model=ClusterInfoResponse)
+async def get_cluster_info():
+    # Get all namespaces
+    namespaces = v1.list_namespace().items
+    total_namespaces = len(namespaces)
+
+    # Get all pods
+    pods = v1.list_pod_for_all_namespaces().items
+    total_pods = len(pods)
+
+    # Get all nodes
+    nodes = v1.list_node().items
+    total_nodes = len(nodes)
+
+    # Count pods per namespace
+    pods_per_namespace = {}
+    for pod in pods:
+        ns = pod.metadata.namespace
+        pods_per_namespace[ns] = pods_per_namespace.get(ns, 0) + 1
+
+    # Node status breakdown
+    node_statuses = {"Ready": 0, "Not Ready": 0, "Unknown": 0}
+    for node in nodes:
+        for condition in node.status.conditions:
+            if condition.type == "Ready":
+                node_statuses["Ready" if condition.status == "True" else "Not Ready"] += 1
+                break
+        else:
+            node_statuses["Unknown"] += 1  # No Ready condition found
+
+    # CPU & Memory usage per namespace
+    resource_usage = []
+    for ns in namespaces:
+        namespace_name = ns.metadata.name
+        cpu_usage = memory_usage = 0
+        for pod in pods:
+            if pod.metadata.namespace == namespace_name:
+                for container in pod.spec.containers:
+                    if container.resources.requests:
+                        cpu_usage += int(container.resources.requests.get("cpu", "0m").rstrip("m")) / 1000
+                        memory_usage += int(container.resources.requests.get("memory", "0Mi").rstrip("Mi"))
+        resource_usage.append({
+            "namespace": namespace_name,
+            "cpu": f"{cpu_usage:.2f} cores",
+            "memory": f"{memory_usage} Mi"
+        })
+
+    return {
+        "totalNodes": total_nodes,
+        "totalPods": total_pods,
+        "totalNamespaces": total_namespaces,
+        "podsPerNamespace": pods_per_namespace,
+        "nodeStatuses": node_statuses,
+        "resourceUsage": resource_usage
+    }
+
+
 @app.get("/api/pods")
 def get_pods():
     try:
@@ -79,24 +155,34 @@ def get_pods():
                 name = columns[1]
                 ready = columns[2]
                 
-                # Exclude entries where namespace is "kube-system"
-                if namespace != "kube-system" and namespace != "local-path-storage":
-                    pods.append({"namespace": namespace, "name": name, "ready": ready})
+                # # Exclude entries where namespace is "kube-system"
+                # if namespace != "kube-system" and namespace != "local-path-storage":
+                #     pods.append({"namespace": namespace, "name": name, "ready": ready})
 
         return pods
     except Exception as e:
         return {"error": str(e)}
     
-@app.get("/api/events")
-def get_events():
+
+def load_events():
     try:
         # Read the events from the events.json file
-        with open("C:/Users/user/Desktop/fyp/parser_tetragon/events.json", "r") as f:
+        with open("./events.json", "r") as f:
             events = json.load(f)
         return events
     except Exception as e:
         return {"error": str(e)}
     
+
+def filter_events(events, minutes):
+    time_threshold = datetime.datetime.utcnow() - datetime.timedelta(minutes=minutes)
+    return [event for event in events if datetime.datetime.fromisoformat(event["timestamp"]) >= time_threshold]
+
+@app.get("/events", response_class=HTMLResponse)
+def show_events(request: Request, minutes: int = Query(5, description="Filter events from the last N minutes")):
+    events = load_events()
+    filtered_events = filter_events(events, minutes)
+    return templates.TemplateResponse("events.html", {"request": request, "events": filtered_events})
     
     
     

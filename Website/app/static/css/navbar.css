@@ -66,6 +66,32 @@
     width: 100%;
 }
 
+
+/* Add this to your navbar.css */
+.dropdown .dropdown-menu {
+    display: none; /* Ensure dropdown is hidden by default */
+}
+
+
+/* Show dropdown only when hovering over the parent dropdown element */
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+/* This will make sure the dropdown arrow only changes on hover if you want that effect */
+.dropdown a::after {
+    content: '▼';
+    margin: 5px;
+    font-size: 0.7em;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.dropdown:hover a::after {
+    transform: rotate(180deg);
+}
+
+
 /* Navbar Responsive for Small Screens */
 @media (max-width: 768px) {
     .navbar ul {
@@ -76,3 +102,5 @@
         margin-bottom: 10px;
     }
 }
+
+

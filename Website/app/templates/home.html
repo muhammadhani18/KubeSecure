@@ -14,19 +14,7 @@
 </head>
 
 <body>
-    <div class="navbar">
-        <a href="/home" class="brand">
-            <img src="/static/Images/Logo.png" alt="Logo"> <!-- Path to your logo image -->
-            KubeSecure
-        </a>
-        <ul>
-            <li><a href="/table">Cluster Events</a></li>
-            <li><a href="/alerts">Alerts</a></li>
-            <li><a href="http://localhost:8080" target="_blank">Grafana</a></li>
-            <li><a href="yaml-validate" target="_blank">Yaml Validator</a></li>
-            <li><a href="/policy">Policy Enforcement</a></li>
-        </ul>
-    </div>
+    {% include "navbar.html" %}
 
     <!-- header design -->
     <header class="header">

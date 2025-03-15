@@ -3,201 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pods Information</title>
+    <title>Cluster Dashboard</title>
     <link rel="stylesheet" href="/static/css/Style.css">
     <link rel="stylesheet" href="/static/css/pods.css">
     <link rel="stylesheet" href="/static/css/navbar.css">
-        <!-- box icons -->
-        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .stats-panel {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: var(--background-dark);
+            border-radius: 10px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background: var(--primary-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-align: center;
+            flex: 1;
+            margin: 0 10px;
+        }
+        .pods-chart {
+            flex: 1;
+            max-width: 40%; /* Reduced size */
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
-    <div class="navbar">
-        <a href="/home" class="brand">
-            <img src="/static/Images/Logo.png" alt="Logo"> <!-- Path to your logo image -->
-            KubeSecure
-        </a>
-        <ul>
-            <li><a href="/table">Cluster Events</a></li>
-            <li><a href="/alerts">Alerts</a></li>
-            <li><a href="http://localhost:8080" target="_blank">Grafana</a></li>
-            <li><a href="yaml-validate" target="_blank">Yaml Validator</a></li>
-            <li><a href="/">Login</a></li>
-        </ul>
-    </div>
-    <!-- Main Content -->
+    {% include "navbar.html" %}
+    
     <div class="container">
-        <h1>Pods Information</h1>
+        <h1>Cluster Overview</h1>
+        
+        <div class="stats-panel">
+            <div class="stat-box">Total Nodes: <span id="total-nodes">0</span></div>
+            <div class="stat-box">Total Pods: <span id="total-pods">0</span></div>
+            <div class="stat-box">Total Namespaces: <span id="total-namespaces">0</span></div>
+        </div>
+        
         <div class="pods-container">
-            <!-- Chart Section -->
+            <!-- Namespace Pods Chart -->
             <div class="pods-chart">
-                <canvas id="namespaceChart"></canvas> <!-- Canvas for Chart.js -->
+                <canvas id="namespaceChart"></canvas>
             </div>
-            <!-- Table Section -->
-            <div class="pods-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Namespace</th>
-                            <th>Name</th>
-                            <th>Ready</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pods-table-body">
-                        <!-- Rows will be dynamically added here -->
-                    </tbody>
-                </table>
+            
+            <!-- Node Status Chart -->
+            <div class="pods-chart">
+                <canvas id="nodeStatusChart"></canvas>
             </div>
+        </div>
 
+        <!-- Resource Utilization Table -->
+        <div class="pods-table">
+            <h2>CPU & Memory Usage</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Namespace</th>
+                        <th>CPU Usage</th>
+                        <th>Memory Usage</th>
+                    </tr>
+                </thead>
+                <tbody id="resource-table-body"></tbody>
+            </table>
         </div>
     </div>
-    <div class="container">
-        <h1>Tetragon Event Information</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>Event</th>
-                    <th>Timestamp</th>
-                    <th>Pod</th>
-                    <th>Command</th>
-                    <th>Capabilities</th>
-                </tr>
-            </thead>
-            <tbody id="events-table-body">
-                <!-- Rows will be dynamically added here -->
-            </tbody>
-        </table>
-    </div>
-    <script src="/static/javascript/script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
-        // Function to fetch and populate the pods table
-        function updatePods() {
-            fetch('/api/pods')
+        function fetchClusterData() {
+            fetch('/api/cluster-info')
                 .then(response => response.json())
                 .then(data => {
-                    const tableBody = document.getElementById('pods-table-body');
-                    tableBody.innerHTML = ''; // Clear existing rows
-    
-                    const namespaceCount = {};
-    
-                    data.forEach(pod => {
-                        const row = `
-                            <tr>
-                                <td data-label="Namespace">${pod.namespace}</td>
-                                <td data-label="Name">${pod.name}</td>
-                                <td data-label="Ready">${pod.ready}</td>
-                            </tr>
-                        `;
-                        tableBody.innerHTML += row;
-    
-                        // Update namespace count for chart
-                        namespaceCount[pod.namespace] = (namespaceCount[pod.namespace] || 0) + 1;
-                    });
-    
-                    updateChart(namespaceCount);
+                    document.getElementById('total-nodes').textContent = data.totalNodes;
+                    document.getElementById('total-pods').textContent = data.totalPods;
+                    document.getElementById('total-namespaces').textContent = data.totalNamespaces;
+                    updateCharts(data.podsPerNamespace, data.nodeStatuses);
+                    updateResourceTable(data.resourceUsage);
                 })
-                .catch(err => console.error('Error fetching pod data:', err));
+                .catch(err => console.error('Error fetching cluster data:', err));
         }
-    
-        // Initialize the chart
-        let namespaceChart;
-        function createChart(namespaceData) {
-            const ctx = document.getElementById('namespaceChart').getContext('2d');
-            namespaceChart = new Chart(ctx, {
+
+        function updateCharts(podsPerNamespace, nodeStatuses) {
+            new Chart(document.getElementById('namespaceChart'), {
                 type: 'bar',
-                data: {
-                    labels: Object.keys(namespaceData),
-                    datasets: [{
-                        label: 'Pods per Namespace',
-                        data: Object.values(namespaceData),
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom', // Legend moved to the bottom
-                        },
-                        tooltip: {
-                            enabled: true
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: true, // Show grid on the x-axis
-                                color: 'rgba(255, 255, 255, 0.1)' // Light grid color
-                            },
-                            ticks: {
-                                color: '#ffffff' // Adjust tick color for dark backgrounds
-                            }
-                        },
-                        y: {
-                            grid: {
-                                display: true, // Show grid on the y-axis
-                                color: 'rgba(255, 255, 255, 0.1)' // Light grid color
-                            },
-                            ticks: {
-                                color: '#ffffff', // Adjust tick color for dark backgrounds
-                                beginAtZero: true // Start y-axis at 0
-                            }
-                        }
-                    }
-                }
+                data: { labels: Object.keys(podsPerNamespace), datasets: [{ data: Object.values(podsPerNamespace), label: 'Pods per Namespace', backgroundColor: 'rgba(75, 192, 192, 0.6)' }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+            
+            new Chart(document.getElementById('nodeStatusChart'), {
+                type: 'pie',
+                data: { labels: Object.keys(nodeStatuses), datasets: [{ data: Object.values(nodeStatuses), backgroundColor: ['#22c55e', '#eab308', '#ef4444'] }] },
+                options: { responsive: true }
             });
         }
-    
-        // Update the chart data
-        function updateChart(namespaceData) {
-            if (namespaceChart) {
-                namespaceChart.data.labels = Object.keys(namespaceData);
-                namespaceChart.data.datasets[0].data = Object.values(namespaceData);
-                namespaceChart.update();
-            } else {
-                createChart(namespaceData);
-            }
-        }
-    
-        // Load initial data and set up polling
-        updatePods();
-        setInterval(updatePods, 10000); // Poll every 10 seconds
-    </script>
-    
-    <script>
-        // Function to fetch and populate the table with event data
-        function updateEventsTable() {
-            fetch('/api/events')
-                .then(response => response.json())
-                .then(data => {
-                    const tableBody = document.getElementById('events-table-body');
-                    tableBody.innerHTML = ''; // Clear existing rows
-                    console.log(data);
-                    data.forEach(event => {
-                        const row = `
-                            <tr>
-                                <td data-label="Event">${event.event}</td>
-                                <td data-label="Timestamp">${event.timestamp}</td>
-                                <td data-label="Pod">${event.pod}</td>
-                                <td data-label="Command">${event.command}</td>
-                                <td data-label="Capabilities">${event.capabilities}</td>
-                            </tr>
-                        `;
-                        tableBody.innerHTML += row;
-                    });
-                })
-                .catch(err => console.error('Error fetching event data:', err));
+
+        function updateResourceTable(resourceUsage) {
+            const tableBody = document.getElementById('resource-table-body');
+            tableBody.innerHTML = '';
+            resourceUsage.forEach(ns => {
+                tableBody.innerHTML += `<tr><td>${ns.namespace}</td><td>${ns.cpu}</td><td>${ns.memory}</td></tr>`;
+            });
         }
 
-        // Initial load of events
-        updateEventsTable();
-
-        // Set up polling every 10 seconds to refresh the table
-        setInterval(updateEventsTable, 10000); // 10000 ms = 10 seconds
+        fetchClusterData();
+        setInterval(fetchClusterData, 10000);
     </script>
 </body>
 </html>

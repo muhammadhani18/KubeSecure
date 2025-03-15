@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetragon Events</title>
+    <link rel="stylesheet" href="/static/css/Style.css">
+    <link rel="stylesheet" href="/static/css/pods.css">
+    <link rel="stylesheet" href="/static/css/navbar.css">
+    <link rel="stylesheet" href="/static/css/events.css">
+
+        <!-- box icons -->
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    {% include "navbar.html" %}
+    
+    <h2>Tetragon Events</h2>
+
+    <form method="get" action="/events">
+        <label for="time_filter">Show events from the last:</label>
+        <select name="minutes" id="time_filter">
+            <option value="5">5 minutes</option>
+            <option value="10">10 minutes</option>
+            <option value="30">30 minutes</option>
+            <option value="60">1 hour</option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+    <div id='container'>
+
+    <table border="1">
+        <tr>
+            <th>Timestamp</th>
+            <th>Pod Name</th>
+            <th>Event Type</th>
+            <th>Command</th>
+            <th>Capabilities</th>
+        </tr>
+        {% for event in events %}
+        <tr>
+            <td>{{ event.timestamp }}</td>
+            <td>{{ event.pod }}</td>
+            <td>{{ event.event }}</td>
+            <td>{{ event.command }}</td>
+            <td>{{ event.capabilities }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

@@ -47,12 +47,16 @@ body {
     margin: 20px auto;
     background: var(--background-light);
     border-radius: 1rem;
-    box-shadow: var(--shadow-lg);
+    /* box-shadow: var(--shadow-lg); */
     border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    color: rgb(131, 129, 129);
+    color:white;
+    
 }
 
+.table-container {
+    color: rgb(131, 129, 129);
+}
 /* Flexbox for Table and Chart */
 .pods-container {
     display: flex;
