@@ -282,18 +282,19 @@
             <form id="policy-form" class="policy-form">
                 <div class="input-field">
                     <label for="policy-name">Policy Name</label>
-                    <input type="text" id="policy-name" name="policy-name" placeholder="Enter policy name..." required>
+                    <input type="text" id="policy-name" name="policy_name" placeholder="Enter policy name..." required>
                 </div>
                 
                 <div class="input-field">
                     <label for="command-path">Full Path of the Command</label>
-                    <input type="text" id="command-path" name="command-path" placeholder="Enter command path..." required>
+                    <input type="text" id="command-path" name="command_name" placeholder="Enter command path..." required>
                 </div>
                 
                 <div class="policy-btn-container">
                     <button id="form-btn" type="submit" class="policy-btn">Submit Policy</button>
                 </div>
             </form>
+            
 
             <!-- Success message overlay -->
             <div class="success-message" id="success-message">
@@ -310,7 +311,7 @@
 
     
     <!-- custom js -->
-    <script>
+    <!-- <script>
         
         // Form submission and success message
         document.getElementById('form-btn').addEventListener('click', function(e) {
@@ -332,6 +333,29 @@
             // Reset the form
             document.getElementById('policy-form').reset();
         });
-    </script>
+        
+    </script> -->
+    <script>
+        document.getElementById('policy-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+        
+            let formData = new FormData(this);
+        
+            let response = await fetch('/api/enforce-policy', {
+                method: 'POST',
+                body: formData
+            });
+        
+            let result = await response.json();
+            
+            if (response.ok) {
+                document.getElementById('success-message').classList.add('show');
+            } else {
+                alert("Error: " + result.detail);
+            }
+        });
+        </script>
+        
+        
 </body>
 </html>

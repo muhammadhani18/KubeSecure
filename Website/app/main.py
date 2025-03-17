@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Request, Form,UploadFile, Query
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import FastAPI, Request, Form,UploadFile, Query, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from subprocess import run, PIPE
@@ -18,7 +18,8 @@ import datetime
 from kubernetes import client, config
 from pydantic import BaseModel
 from typing import Dict, List
- 
+import yaml 
+
 app = FastAPI()
 # Load Kubernetes config (use 'inClusterConfig()' if running inside a cluster)
 config.load_kube_config()
@@ -138,31 +139,6 @@ async def get_cluster_info():
     }
 
 
-@app.get("/api/pods")
-def get_pods():
-    try:
-        # Run the kubectl command
-        result = run(['kubectl', 'get', 'pods', '-A'], stdout=PIPE, text=True)
-        output = result.stdout
-
-        # Parse the output to extract Namespace, Name, and Ready columns
-        pods = []
-        lines = output.split('\n')
-        for line in lines[1:]:  # Skip the header row
-            if line.strip():
-                columns = line.split()
-                namespace = columns[0]
-                name = columns[1]
-                ready = columns[2]
-                
-                # # Exclude entries where namespace is "kube-system"
-                # if namespace != "kube-system" and namespace != "local-path-storage":
-                #     pods.append({"namespace": namespace, "name": name, "ready": ready})
-
-        return pods
-    except Exception as e:
-        return {"error": str(e)}
-    
 
 def load_events():
     try:
@@ -347,3 +323,51 @@ async def detect_smells(file: UploadFile):
 @app.get("/policy", response_class=HTMLResponse)
 def show_pods_table(request: Request):
     return templates.TemplateResponse("policy.html", {"request": request})
+
+@app.post("/api/enforce-policy")
+async def enforce_policy(
+    policy_name: str = Form(...), 
+    command_name: str = Form(...)
+):
+    policy_yaml = {
+        "apiVersion": "cilium.io/v1alpha1",
+        "kind": "TracingPolicy",
+        "metadata": {"name": policy_name},
+        "spec": {
+            "kprobes": [
+                {
+                    "call": "sys_execve",
+                    "syscall": True,
+                    "args": [{"index": 0, "type": "string"}],
+                    "selectors": [
+                        {
+                            "matchArgs": [
+                                {"index": 0, "operator": "Equal", "values": [command_name]}
+                            ],
+                            "matchActions": [{"action": "Sigkill"}],
+                        }
+                    ],
+                }
+            ]
+        },
+    }
+
+    try:
+        # Create a temporary YAML file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml", mode="wb") as temp_file:
+            yaml_content = yaml.dump(policy_yaml, default_flow_style=False)
+            temp_file.write(yaml_content.encode('utf-8'))  # 🔧 Encode string to bytes
+            temp_file_path = temp_file.name
+
+        # Apply the YAML using kubectl
+        process = subprocess.run(
+            ["kubectl", "apply", "-f", temp_file_path], capture_output=True, text=True
+        )
+
+        if process.returncode == 0:
+            return JSONResponse(content={"message": "Policy applied successfully!"})
+        else:
+            raise HTTPException(status_code=400, detail=process.stderr)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
