@@ -371,3 +371,8 @@ async def enforce_policy(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+    
+@app.get("/rate-limit", response_class=HTMLResponse)
+def show_pods_table(request: Request):
+    return templates.TemplateResponse("rate-limiting.html", {"request": request})

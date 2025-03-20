@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rate Limit Control</title>
+  <!-- Link to your external stylesheet if you have one -->
+  <link rel="stylesheet" href="/static/css/styles.css" />
+  <link rel="stylesheet" href="/static/css/navbar.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2em;
+      background: #f7f7f7;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 2em;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5em;
+    }
+    .btn {
+      padding: 10px 20px;
+      margin: 5px 0;
+      background-color: #007BFF;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+    .input-group {
+      margin-top: 1.5em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .input-group input[type="number"] {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 120px;
+      margin-right: 10px;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+    {% include "navbar.html" %}
+  <div class="container">
+    <h1>Rate Limit Control</h1>
+    <div style="text-align: center;">
+      <button class="btn" id="revertRateLimitBtn">Revert Rate Limit</button>
+    </div>
+    <div class="input-group">
+      <input type="number" id="rateLimitInput" placeholder="Rate Limit" />
+      <button class="btn" id="applyRateLimitBtn">Apply Rate Limiting</button>
+    </div>
+  </div>
+</body>
+</html>
