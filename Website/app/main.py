@@ -376,3 +376,40 @@ async def enforce_policy(
 @app.get("/rate-limit", response_class=HTMLResponse)
 def show_pods_table(request: Request):
     return templates.TemplateResponse("rate-limiting.html", {"request": request})
+
+REVERT_COMMAND = [
+    "kubectl", "patch", "ingress", "calculator-ingress", "-n", "default", "--type=json",
+    "-p", '[{"op": "remove", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1limit-rps"},'
+          '{"op": "remove", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1limit-burst"},'
+          '{"op": "remove", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1limit-connections"}]'
+]
+
+@app.post("/revert_rate_limit")
+def revert_rate_limit():
+    try:
+        subprocess.run(REVERT_COMMAND, check=True)
+        return {"message": "Rate limiting reverted successfully"}
+    except subprocess.CalledProcessError as e:
+        return {"error": f"Failed to revert rate limiting: {e}"}
+
+
+@app.post("/apply_rate_limit")
+def apply_rate_limit(user_value: int = Form(...)):
+    # Construct the JSON patch payload
+    patch_data = json.dumps([
+        {"op": "add", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1limit-rps", "value": str(user_value)},
+        {"op": "add", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1limit-burst", "value": str(user_value + 10)},
+        {"op": "add", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1limit-connections", "value": str(user_value + 20)}
+    ])
+
+    # Construct the command
+    patch_command = [
+        "kubectl", "patch", "ingress", "calculator-ingress", "-n", "default", "--type=json",
+        "-p", patch_data
+    ]
+
+    try:
+        subprocess.run(patch_command, check=True)
+        return {"message": "Rate limiting applied successfully"}
+    except subprocess.CalledProcessError as e:
+        return {"error": f"Failed to apply rate limiting: {e}"}
