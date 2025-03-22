@@ -19,10 +19,19 @@ from kubernetes import client, config
 from pydantic import BaseModel
 from typing import Dict, List
 import yaml 
+import firebase_admin
+from firebase_admin import credentials, db
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
 # Load Kubernetes config (use 'inClusterConfig()' if running inside a cluster)
 config.load_kube_config()
+cred = credentials.Certificate('service-key.json')
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://kube-2e93f-default-rtdb.firebaseio.com/'
+})
+
 
 v1 = client.CoreV1Api()
 
@@ -45,7 +54,7 @@ templates = Jinja2Templates(directory="templates")
 
 # Hardcoded users
 users_db = {
-    "usman@gmail.com": "12345"
+    "usman@gmail.com": "12345678"
 }
 
 @app.get("/", response_class=HTMLResponse)
@@ -56,6 +65,20 @@ def read_root(request: Request):
 def read_root(request: Request):
     return templates.TemplateResponse("alerts.html", {"request": request, "message": ""})
 
+@app.get("/get-alerts")
+async def get_alerts():
+    """Fetch alerts from Firebase Realtime Database"""
+    alerts_ref = db.reference("alerts")
+    alerts_data = alerts_ref.get()
+
+    if not alerts_data:
+        return {"message": "No alerts found"}
+
+    # Convert Firebase dict to a list for easy frontend handling
+    alerts_list = [{"id": key, "message": value.get("message", ""), "timestamp": value.get("timestamp", 0)}
+                   for key, value in alerts_data.items()]
+
+    return {"alerts": alerts_list}
 @app.post("/login", response_class=HTMLResponse)
 def login(request: Request, email: str = Form(...), password: str = Form(...)):
     if email in users_db and users_db[email] == password:
@@ -371,7 +394,64 @@ async def enforce_policy(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+@app.get("/api/get-policies")
+async def get_policies():
+    try:
+        process = subprocess.run(
+            ["kubectl", "get", "tracingpolicies.cilium.io", "-o", "yaml"],
+            capture_output=True,
+            text=True
+        )
+
+        if process.returncode != 0:
+            raise HTTPException(status_code=400, detail=process.stderr)
+
+        policies_yaml = yaml.safe_load(process.stdout)
+        applied_policies = policies_yaml.get("items", [])
+
+        formatted_policies = []
+
+        for policy in applied_policies:
+            name = policy.get("metadata", {}).get("name", "Unknown")
+            kprobes = policy.get("spec", {}).get("kprobes", [])
+
+            parsed_kprobes = []
+            for kprobe in kprobes:
+                call = kprobe.get("call", "Unknown")
+                syscall = kprobe.get("syscall", False)
+                selectors = kprobe.get("selectors", [])
+
+                match_commands = []
+                actions = []
+
+                for selector in selectors:
+                    match_args = selector.get("matchArgs", [])
+                    for arg in match_args:
+                        if arg.get("index") == 0 and arg.get("operator") == "Equal":
+                            match_commands.extend(arg.get("values", []))
+
+                    match_actions = selector.get("matchActions", [])
+                    for action in match_actions:
+                        actions.append(action.get("action", "Unknown"))
+
+                parsed_kprobes.append({
+                    "call": call,
+                    "syscall": syscall,
+                    "match_commands": match_commands,
+                    "actions": actions
+                })
+
+            formatted_policies.append({
+                "name": name,
+                "kprobes": parsed_kprobes
+            })
+
+        return JSONResponse(content={"policies": formatted_policies})
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
     
 @app.get("/rate-limit", response_class=HTMLResponse)
 def show_pods_table(request: Request):

@@ -100,45 +100,36 @@
     </div>
 
     <!-- Firebase Configuration -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyC04JstYtPhKAEbXzYv6KkyRqxHnbsuQ9A",
-            authDomain: "kube-2e93f.firebaseapp.com",
-            databaseURL: "https://kube-2e93f-default-rtdb.firebaseio.com/",
-            projectId: "kube-2e93f",
-            storageBucket: "kube-2e93f.appspot.com",
-            messagingSenderId: "129547489281",
-            appId: "1:129547489281:web:f799c977b247dcc940f000",
-            measurementId: "G-9KXMW1DVFX"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        const alertsRef = ref(database, "alerts");
-
-        // Function to fetch and update table dynamically
-        onValue(alertsRef, (snapshot) => {
-            const alertsTable = document.getElementById("alerts-body");
-            alertsTable.innerHTML = ""; // Clear table before updating
-            let index = 1;
-
-            snapshot.forEach((childSnapshot) => {
-                const alert = childSnapshot.val();
-                const row = document.createElement("tr");
-
-                row.innerHTML = `
-                    <td>${index++}</td>
-                    <td>${alert.message}</td>
-                    <td>${new Date(alert.timestamp).toLocaleString()}</td>
-                `;
-
-                alertsTable.appendChild(row);
-            });
-        });
+    <script>
+        async function fetchAlerts() {
+            try {
+                const response = await fetch("/get-alerts");  // Adjust URL if deployed
+                const data = await response.json();
+    
+                const alertsTable = document.getElementById("alerts-body");
+                alertsTable.innerHTML = "";  // Clear previous data
+    
+                if (!data.alerts || data.alerts.length === 0) {
+                    alertsTable.innerHTML = "<tr><td colspan='3'>No alerts available</td></tr>";
+                    return;
+                }
+    
+                data.alerts.forEach((alert, index) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${alert.message}</td>
+                        <td>${new Date(alert.timestamp).toLocaleString()}</td>
+                    `;
+                    alertsTable.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Error fetching alerts:", error);
+            }
+        }
+    
+        // Fetch alerts when the page loads
+        document.addEventListener("DOMContentLoaded", fetchAlerts);
     </script>
 </body>
 </html>

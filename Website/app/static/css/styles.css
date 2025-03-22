@@ -9,7 +9,7 @@ body {
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-    background-color: #e0f7fa; /* Light blue as fallback */
+    background-color: #112e42; /* Light blue as fallback */
 }
 
 a:hover {
@@ -36,6 +36,7 @@ h4 {
 h6 span {
     padding: 0 20px;
     font-weight: 700;
+    color: #e0f7fa;
 }
 
 .section {

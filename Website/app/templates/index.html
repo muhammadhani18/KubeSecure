@@ -4,11 +4,8 @@
   <title>KubeSecure</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <!-- Icon Library -->
   <link rel="stylesheet" href="https://unicons.iconscout.com/release/v2.1.9/css/unicons.css">
-  <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css">
-  <!-- Custom Styles -->
   <link rel="stylesheet" href="/static/css/styles.css">
   <link rel="stylesheet" href="/static/css/navbar.css">
 </head>
@@ -28,14 +25,15 @@
 									<div class="center-wrap">
 										<div class="section text-center">
 											<h4 class="mb-4 pb-3">Log In</h4>
-											<form method="post" action="/login">
+											<form method="post" action="/login" onsubmit="return validateLogin()">
 												<div class="form-group">
-													<input type="email" name="email" class="form-style" placeholder="Email" required>
+													<input type="email" name="email" class="form-style" placeholder="Email" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$">
 													<i class="input-icon uil uil-at"></i>
 												</div>	
 												<div class="form-group mt-2">
-													<input type="password" name="password" class="form-style" placeholder="Password" required>
+													<input type="password" id="login-password" name="password" class="form-style" placeholder="Password" required minlength="6">
 													<i class="input-icon uil uil-lock-alt"></i>
+													<span onclick="togglePassword('login-password')" class="uil uil-eye password-toggle"></span>
 												</div>
 												<button type="submit" class="btn mt-4">Login</button>
 												<p class="mb-0 mt-4 text-center"><a href="#" class="link">Forgot your password?</a></p>
@@ -48,22 +46,23 @@
 									<div class="center-wrap">
 										<div class="section text-center">
 											<h4 class="mb-3 pb-3">Sign Up</h4>
-											<form method="post" action="/signup">
+											<form method="post" action="/signup" onsubmit="return validateSignup()">
 												<div class="form-group">
 													<input type="text" name="fullname" class="form-style" placeholder="Full Name" required>
 													<i class="input-icon uil uil-user"></i>
 												</div>	
 												<div class="form-group mt-2">
-													<input type="tel" name="phone" class="form-style" placeholder="Phone Number" required>
+													<input type="tel" name="phone" class="form-style" placeholder="Phone Number" required pattern="[0-9]{10,15}">
 													<i class="input-icon uil uil-phone"></i>
 												</div>	
                         <div class="form-group mt-2">
-													<input type="email" name="email" class="form-style" placeholder="Email" required>
+													<input type="email" name="email" class="form-style" placeholder="Email" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$">
 													<i class="input-icon uil uil-at"></i>
 												</div>
 												<div class="form-group mt-2">
-													<input type="password" name="password" class="form-style" placeholder="Password" required>
+													<input type="password" id="signup-password" name="password" class="form-style" placeholder="Password" required minlength="8" pattern="(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}">
 													<i class="input-icon uil uil-lock-alt"></i>
+													<span onclick="togglePassword('signup-password')" class="uil uil-eye password-toggle"></span>
 												</div>
 												<button type="submit" class="btn mt-4">Register</button>
 									      	</div>
@@ -78,5 +77,69 @@
 	      	</div>
 	    </div>
 	</div>
+	
+	<script>
+		function validateLogin() {
+			const email = document.querySelector('input[name="email"]').value;
+			const password = document.querySelector('input[name="password"]').value;
+
+			if (!email.includes('@') || password.length < 6) {
+				alert("Invalid login credentials!");
+				return false;
+			}
+			return true;
+		}
+
+		function validateSignup() {
+			const fullname = document.querySelector('input[name="fullname"]').value.trim();
+			const phone = document.querySelector('input[name="phone"]').value;
+			const email = document.querySelector('input[name="email"]').value;
+			const password = document.querySelector('input[name="password"]').value;
+
+			const passwordPattern = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+
+			if (fullname.length < 3) {
+				alert("Full name must be at least 3 characters.");
+				return false;
+			}
+			if (!phone.match(/^[0-9]{10,15}$/)) {
+				alert("Enter a valid phone number.");
+				return false;
+			}
+			if (!email.includes('@')) {
+				alert("Enter a valid email.");
+				return false;
+			}
+			if (!password.match(passwordPattern)) {
+				alert("Password must be at least 8 characters, include one uppercase letter and one number.");
+				return false;
+			}
+			return true;
+		}
+
+		function togglePassword(id) {
+			const input = document.getElementById(id);
+			if (input.type === "password") {
+				input.type = "text";
+			} else {
+				input.type = "password";
+			}
+		}
+	</script>
+
+	<style>
+		.password-toggle {
+			cursor: pointer;
+			position: absolute;
+			right: 15px;
+			top: 12px;
+			font-size: 18px;
+			color: #888;
+		}
+		.password-toggle:hover {
+			color: #555;
+		}
+	</style>
+
 </body>
 </html>
