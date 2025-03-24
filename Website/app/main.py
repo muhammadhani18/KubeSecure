@@ -25,16 +25,28 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
+
+
+# Allow all origins, all methods, and all headers
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all HTTP methods
+    allow_headers=["*"],  # Allows all headers
+)
+
+
 # Load Kubernetes config (use 'inClusterConfig()' if running inside a cluster)
-config.load_kube_config()
 cred = credentials.Certificate('service-key.json')
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://kube-2e93f-default-rtdb.firebaseio.com/'
 })
 
 
-v1 = client.CoreV1Api()
-
+# config.load_kube_config()
+# v1 = client.CoreV1Api()
+# apps_v1 = client.AppsV1Api()
 
 # Define response model
 class ClusterInfoResponse(BaseModel):
@@ -79,6 +91,7 @@ async def get_alerts():
                    for key, value in alerts_data.items()]
 
     return {"alerts": alerts_list}
+
 @app.post("/login", response_class=HTMLResponse)
 def login(request: Request, email: str = Form(...), password: str = Form(...)):
     if email in users_db and users_db[email] == password:
@@ -468,9 +481,9 @@ REVERT_COMMAND = [
 def revert_rate_limit():
     try:
         subprocess.run(REVERT_COMMAND, check=True)
-        return {"message": "Rate limiting reverted successfully"}
+        return {"message": "Rate limiting reverted successfully"},200
     except subprocess.CalledProcessError as e:
-        return {"error": f"Failed to revert rate limiting: {e}"}
+        return {"error": f"Failed to revert rate limiting: {e}"},500
 
 
 @app.post("/apply_rate_limit")
@@ -490,6 +503,77 @@ def apply_rate_limit(user_value: int = Form(...)):
 
     try:
         subprocess.run(patch_command, check=True)
-        return {"message": "Rate limiting applied successfully"}
+        return {"message": "Rate limiting applied successfully"},200
     except subprocess.CalledProcessError as e:
-        return {"error": f"Failed to apply rate limiting: {e}"}
+        return {"error": f"Failed to apply rate limiting: {e}"},500
+    
+    
+
+@app.get("/cluster-info")
+def get_cluster_info() -> Dict:
+    try:
+        nodes = v1.list_node().items
+        pods = v1.list_pod_for_all_namespaces().items
+        namespaces = v1.list_namespace().items
+        deployments = apps_v1.list_deployment_for_all_namespaces().items
+        events = v1.list_event_for_all_namespaces().items
+
+        # Count resources
+        node_count = len(nodes)
+        pod_count = len(pods)
+        namespace_count = len(namespaces)
+        deployment_count = len(deployments)
+
+        # Node status
+        ready_nodes = sum(1 for node in nodes if any(
+            status.status == "True" and status.type == "Ready" for status in node.status.conditions))
+
+        # Pod status
+        running_pods = sum(1 for pod in pods if pod.status.phase == "Running")
+        pending_pods = pod_count - running_pods
+
+        # Resource usage (Dummy values, real usage requires metrics server)
+        cpu_usage = "42%"
+        memory_usage = "68%"
+        storage_usage = "35%"
+
+        # Events (last 5)
+        event_list = [{
+            "type": event.type,
+            "resource": event.involved_object.name,
+            "message": event.message,
+            "time": event.last_timestamp if event.last_timestamp else "Unknown"
+        } for event in sorted(events, key=lambda x: x.last_timestamp or "0", reverse=True)[:5]]
+
+        # Organizing pods by namespace
+        namespace_pods = {}
+        for pod in pods:
+            ns = pod.metadata.namespace
+            pod_info = {
+                "name": pod.metadata.name,
+                "status": pod.status.phase,
+                "node": pod.spec.node_name,
+                "ip": pod.status.pod_ip,
+                "containers": [container.name for container in pod.spec.containers]
+            }
+            if ns not in namespace_pods:
+                namespace_pods[ns] = []
+            namespace_pods[ns].append(pod_info)
+
+        return {
+            "nodes": {"total": node_count, "ready": ready_nodes},
+            "pods": {"total": pod_count, "running": running_pods, "pending": pending_pods},
+            "resources": {"cpu": cpu_usage, "memory": memory_usage, "storage": storage_usage},
+            "deployments": deployment_count,
+            "events": event_list,
+            "namespaces": [
+                {
+                    "name": ns.metadata.name,
+                    "pods": namespace_pods.get(ns.metadata.name, [])
+                }
+                for ns in namespaces
+            ]
+        }
+
+    except Exception as e:
+        return {"error": str(e)}

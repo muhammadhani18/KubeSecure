@@ -4,7 +4,7 @@ metadata:
   name: "block-writing"
 spec:
   kprobes:
-    - call: "sys_execve"  # Changed from do_execve to execve
+    - call: "sys_execve"
       syscall: true
       args:
         - index: 0

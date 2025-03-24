@@ -1,14 +1,198 @@
+from fastapi import FastAPI, Request, Form,UploadFile, Query, HTTPException
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from subprocess import run, PIPE
+import re
+import subprocess
+import sys
+import signal
+import threading
+import queue
+import json
+import datetime
 import yaml
+import tempfile
 import os
+import datetime 
+from kubernetes import client, config
+from pydantic import BaseModel
+from typing import Dict, List
+import yaml 
+import firebase_admin
+from firebase_admin import credentials, db
+from fastapi.middleware.cors import CORSMiddleware
 
+
+app = FastAPI()
+# Load Kubernetes config (use 'inClusterConfig()' if running inside a cluster)
+config.load_kube_config()
+cred = credentials.Certificate('service-key.json')
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://kube-2e93f-default-rtdb.firebaseio.com/'
+})
+
+
+v1 = client.CoreV1Api()
+
+
+# Define response model
+class ClusterInfoResponse(BaseModel):
+    totalNodes: int
+    totalPods: int
+    totalNamespaces: int
+    podsPerNamespace: Dict[str, int]
+    nodeStatuses: Dict[str, int]
+    resourceUsage: List[Dict[str, str]]
+
+
+# Mount static files at "/static"
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Set up templates
+templates = Jinja2Templates(directory="templates")
+
+# Hardcoded users
+users_db = {
+    "usman@gmail.com": "12345678"
+}
+
+@app.get("/", response_class=HTMLResponse)
+def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request, "message": ""})
+
+@app.get("/alerts", response_class=HTMLResponse)
+def read_root(request: Request):
+    return templates.TemplateResponse("alerts.html", {"request": request, "message": ""})
+
+@app.get("/get-alerts")
+async def get_alerts():
+    """Fetch alerts from Firebase Realtime Database"""
+    alerts_ref = db.reference("alerts")
+    alerts_data = alerts_ref.get()
+
+    if not alerts_data:
+        return {"message": "No alerts found"}
+
+    # Convert Firebase dict to a list for easy frontend handling
+    alerts_list = [{"id": key, "message": value.get("message", ""), "timestamp": value.get("timestamp", 0)}
+                   for key, value in alerts_data.items()]
+
+    return {"alerts": alerts_list}
+@app.post("/login", response_class=HTMLResponse)
+def login(request: Request, email: str = Form(...), password: str = Form(...)):
+    if email in users_db and users_db[email] == password:
+        # Redirect to welcome page on successful login
+        return templates.TemplateResponse("home.html", {"request": request})
+    else:
+        # Return to login page with error message
+        return templates.TemplateResponse("index.html", {"request": request, "message": "Invalid email or password."})
+
+@app.post("/signup", response_class=HTMLResponse)
+def signup(request: Request, email: str = Form(...), password: str = Form(...)):
+    if email in users_db:
+        return templates.TemplateResponse("index.html", {"request": request, "message": "User already exists."})
+    else:
+        users_db[email] = password
+        return RedirectResponse(url="/home", status_code=303)
+
+@app.get("/home", response_class=HTMLResponse)
+def welcome(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
+
+# New route for pods table
+@app.get("/table", response_class=HTMLResponse)
+def show_pods_table(request: Request):
+    return templates.TemplateResponse("pods.html", {"request": request})
+
+@app.get("/api/cluster-info", response_model=ClusterInfoResponse)
+async def get_cluster_info():
+    # Get all namespaces
+    namespaces = v1.list_namespace().items
+    total_namespaces = len(namespaces)
+
+    # Get all pods
+    pods = v1.list_pod_for_all_namespaces().items
+    total_pods = len(pods)
+
+    # Get all nodes
+    nodes = v1.list_node().items
+    total_nodes = len(nodes)
+
+    # Count pods per namespace
+    pods_per_namespace = {}
+    for pod in pods:
+        ns = pod.metadata.namespace
+        pods_per_namespace[ns] = pods_per_namespace.get(ns, 0) + 1
+
+    # Node status breakdown
+    node_statuses = {"Ready": 0, "Not Ready": 0, "Unknown": 0}
+    for node in nodes:
+        for condition in node.status.conditions:
+            if condition.type == "Ready":
+                node_statuses["Ready" if condition.status == "True" else "Not Ready"] += 1
+                break
+        else:
+            node_statuses["Unknown"] += 1  # No Ready condition found
+
+    # CPU & Memory usage per namespace
+    resource_usage = []
+    for ns in namespaces:
+        namespace_name = ns.metadata.name
+        cpu_usage = memory_usage = 0
+        for pod in pods:
+            if pod.metadata.namespace == namespace_name:
+                for container in pod.spec.containers:
+                    if container.resources.requests:
+                        cpu_usage += int(container.resources.requests.get("cpu", "0m").rstrip("m")) / 1000
+                        memory_usage += int(container.resources.requests.get("memory", "0Mi").rstrip("Mi"))
+        resource_usage.append({
+            "namespace": namespace_name,
+            "cpu": f"{cpu_usage:.2f} cores",
+            "memory": f"{memory_usage} Mi"
+        })
+
+    return {
+        "totalNodes": total_nodes,
+        "totalPods": total_pods,
+        "totalNamespaces": total_namespaces,
+        "podsPerNamespace": pods_per_namespace,
+        "nodeStatuses": node_statuses,
+        "resourceUsage": resource_usage
+    }
+
+
+
+def load_events():
+    try:
+        # Read the events from the events.json file
+        with open("./events.json", "r") as f:
+            events = json.load(f)
+        return events
+    except Exception as e:
+        return {"error": str(e)}
+    
+
+def filter_events(events, minutes):
+    time_threshold = datetime.datetime.utcnow() - datetime.timedelta(minutes=minutes)
+    return [event for event in events if datetime.datetime.fromisoformat(event["timestamp"]) >= time_threshold]
+
+@app.get("/events", response_class=HTMLResponse)
+def show_events(request: Request, minutes: int = Query(5, description="Filter events from the last N minutes")):
+    events = load_events()
+    filtered_events = filter_events(events, minutes)
+    return templates.TemplateResponse("events.html", {"request": request, "events": filtered_events})
+    
+    
+    
+    
 def load_yaml(file_path):
     """Load a YAML file and return its content."""
     try:
         with open(file_path, 'r') as f:
             return list(yaml.safe_load_all(f))
     except yaml.YAMLError as e:
-        print(f"Error parsing YAML file {file_path}: {e}")
-        return []
+        raise HTTPException(status_code=400, detail=f"Error parsing YAML file: {e}")
 
 def detect_code_smells(manifests):
     """Detect Kubernetes code smells in the given YAML manifests."""
@@ -18,78 +202,294 @@ def detect_code_smells(manifests):
         if not isinstance(manifest, dict):
             continue
 
-        kind = manifest.get('kind', 'Unknown')
-        metadata = manifest.get('metadata', {})
-        name = metadata.get('name', 'Unknown')
-        namespace = metadata.get('namespace', 'default')
-        spec = manifest.get('spec', {})
+        kind = manifest.get("kind", "Unknown")
+        metadata = manifest.get("metadata", {})
+        name = metadata.get("name", "Unknown")
+        namespace = metadata.get("namespace", "default")
+        spec = manifest.get("spec", {})
 
-        # Detect hardcoded values (example: using 'latest' tag)
-        if 'containers' in spec:
-            for container in spec['containers']:
-                image = container.get('image', '')
-                if ':latest' in image or image == 'latest':
-                    smells.append(f"[Hardcoded Value] {kind}/{name} in namespace {namespace} uses 'latest' tag for image {image}.")
+        # Detect hardcoded values (e.g., using 'latest' tag in images)
+        if "containers" in spec:
+            for container in spec["containers"]:
+                image = container.get("image", "")
+                if ":latest" in image or image == "latest":
+                    smells.append(
+                        f"[Hardcoded Value] {kind}/{name} in namespace {namespace} uses 'latest' tag for image {image}."
+                    )
 
         # Detect missing resource requests and limits
-        if 'containers' in spec:
-            for container in spec['containers']:
-                resources = container.get('resources', {})
-                if 'requests' not in resources or 'limits' not in resources:
-                    smells.append(f"[Resource Smell] {kind}/{name} in namespace {namespace} is missing resource requests or limits.")
+        if "containers" in spec:
+            for container in spec["containers"]:
+                resources = container.get("resources", {})
+                if "requests" not in resources or "limits" not in resources:
+                    smells.append(
+                        f"[Resource Smell] {kind}/{name} in namespace {namespace} is missing resource requests or limits."
+                    )
 
         # Detect overprivileged pods
-        if kind == 'Pod' and spec.get('securityContext', {}).get('privileged', False):
-            smells.append(f"[Overprivileged Pod] {kind}/{name} in namespace {namespace} is running as privileged.")
+        if kind == "Pod" and spec.get("securityContext", {}).get("privileged", False):
+            smells.append(
+                f"[Overprivileged Pod] {kind}/{name} in namespace {namespace} is running as privileged."
+            )
 
         # Detect missing probes
-        if 'containers' in spec:
-            for container in spec['containers']:
-                if 'livenessProbe' not in container:
-                    smells.append(f"[Health Check] {kind}/{name} in namespace {namespace} is missing a livenessProbe.")
-                if 'readinessProbe' not in container:
-                    smells.append(f"[Health Check] {kind}/{name} in namespace {namespace} is missing a readinessProbe.")
+        if "containers" in spec:
+            for container in spec["containers"]:
+                if "livenessProbe" not in container:
+                    smells.append(
+                        f"[Health Check] {kind}/{name} in namespace {namespace} is missing a livenessProbe."
+                    )
+                if "readinessProbe" not in container:
+                    smells.append(
+                        f"[Health Check] {kind}/{name} in namespace {namespace} is missing a readinessProbe."
+                    )
 
         # Detect large ConfigMaps
-        if kind == 'ConfigMap':
-            data = manifest.get('data', {})
+        if kind == "ConfigMap":
+            data = manifest.get("data", {})
             if len(data) > 100:  # Arbitrary threshold
-                smells.append(f"[Large ConfigMap] {kind}/{name} in namespace {namespace} has a large number of entries ({len(data)}).")
+                smells.append(
+                    f"[Large ConfigMap] {kind}/{name} in namespace {namespace} has a large number of entries ({len(data)})."
+                )
 
         # Detect secrets in plain text
-        if kind == 'Secret':
-            data = manifest.get('data', {})
+        if kind == "Secret":
+            data = manifest.get("data", {})
             if any(len(value) > 100 for value in data.values()):  # Arbitrary threshold
-                smells.append(f"[Secret Smell] {kind}/{name} in namespace {namespace} has potentially large plain-text entries.")
+                smells.append(
+                    f"[Secret Smell] {kind}/{name} in namespace {namespace} has potentially large plain-text entries."
+                )
 
         # Detect using default namespace
-        if namespace == 'default':
+        if namespace == "default":
             smells.append(f"[Namespace Smell] {kind}/{name} is in the default namespace.")
+
+        # Detect running as root
+        if "containers" in spec:
+            for container in spec["containers"]:
+                security_context = container.get("securityContext", {})
+                if security_context.get("runAsUser", 0) == 0:
+                    smells.append(
+                        f"[Security Risk] {kind}/{name} in namespace {namespace} runs as root (runAsUser=0)."
+                    )
+
+        # Detect privilege escalation
+        if "containers" in spec:
+            for container in spec["containers"]:
+                security_context = container.get("securityContext", {})
+                if security_context.get("allowPrivilegeEscalation", True):
+                    smells.append(
+                        f"[Security Risk] {kind}/{name} in namespace {namespace} allows privilege escalation."
+                    )
+
+        # Detect wildcard roles in RoleBindings/ClusterRoleBindings
+        if kind in ["RoleBinding", "ClusterRoleBinding"]:
+            subjects = manifest.get("subjects", [])
+            for subject in subjects:
+                if subject.get("kind") == "Group" and subject.get("name") in ["system:authenticated", "system:unauthenticated"]:
+                    smells.append(
+                        f"[RBAC Smell] {kind}/{name} in namespace {namespace} binds a role to a wildcard group ({subject.get('name')})."
+                    )
+
+        # Detect use of hostPath (which can break container isolation)
+        if "volumes" in spec:
+            for volume in spec["volumes"]:
+                if "hostPath" in volume:
+                    smells.append(
+                        f"[Security Risk] {kind}/{name} in namespace {namespace} uses a hostPath volume, which can compromise security."
+                    )
+
+        # Detect high replica count for Deployments
+        if kind == "Deployment":
+            replicas = spec.get("replicas", 1)
+            if replicas > 100:  # Arbitrary high threshold
+                smells.append(
+                    f"[Scaling Issue] {kind}/{name} in namespace {namespace} has a high replica count ({replicas}), which might be excessive."
+                )
+
+        # Detect containers without security policies
+        if "containers" in spec:
+            for container in spec["containers"]:
+                security_context = container.get("securityContext", {})
+                if not security_context:
+                    smells.append(
+                        f"[Security Risk] {kind}/{name} in namespace {namespace} lacks a security context."
+                    )
 
     return smells
 
-def scan_directory(directory):
-    """Scan a directory for Kubernetes YAML files and check for code smells."""
-    all_smells = []
-    for root, _, files in os.walk(directory):
-        for file in files:
-            if file.endswith(('.yaml', '.yml')):
-                file_path = os.path.join(root, file)
-                manifests = load_yaml(file_path)
-                smells = detect_code_smells(manifests)
-                if smells:
-                    all_smells.append((file_path, smells))
-    return all_smells
 
-if __name__ == "__main__":
-    directory = input("Enter the directory containing Kubernetes YAML files: ")
-    results = scan_directory(directory)
+@app.get("/yaml-validate", response_class=HTMLResponse)
+def show_pods_table(request: Request):
+    return templates.TemplateResponse("checkSmell.html", {"request": request})
 
-    if results:
-        print("\nDetected Kubernetes Code Smells:")
-        for file_path, smells in results:
-            print(f"\nFile: {file_path}")
-            for smell in smells:
-                print(f"  - {smell}")
-    else:
-        print("No code smells detected.")
+@app.post("/api/detect-smells")
+async def detect_smells(file: UploadFile):
+    """Endpoint to detect Kubernetes code smells from a YAML file."""
+    if not file.filename.endswith(('.yaml', '.yml')):
+        raise HTTPException(status_code=400, detail="File must be a YAML file.")
+
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml") as temp_file:
+            temp_file.write(await file.read())
+            temp_file_path = temp_file.name
+
+        manifests = load_yaml(temp_file_path)
+        smells = detect_code_smells(manifests)
+        os.remove(temp_file_path)
+
+        return {"smells": smells}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
+
+@app.get("/policy", response_class=HTMLResponse)
+def show_pods_table(request: Request):
+    return templates.TemplateResponse("policy.html", {"request": request})
+
+@app.post("/api/enforce-policy")
+async def enforce_policy(
+    policy_name: str = Form(...), 
+    command_name: str = Form(...)
+):
+    policy_yaml = {
+        "apiVersion": "cilium.io/v1alpha1",
+        "kind": "TracingPolicy",
+        "metadata": {"name": policy_name},
+        "spec": {
+            "kprobes": [
+                {
+                    "call": "sys_execve",
+                    "syscall": True,
+                    "args": [{"index": 0, "type": "string"}],
+                    "selectors": [
+                        {
+                            "matchArgs": [
+                                {"index": 0, "operator": "Equal", "values": [command_name]}
+                            ],
+                            "matchActions": [{"action": "Sigkill"}],
+                        }
+                    ],
+                }
+            ]
+        },
+    }
+
+    try:
+        # Create a temporary YAML file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml", mode="wb") as temp_file:
+            yaml_content = yaml.dump(policy_yaml, default_flow_style=False)
+            temp_file.write(yaml_content.encode('utf-8'))  # 🔧 Encode string to bytes
+            temp_file_path = temp_file.name
+
+        # Apply the YAML using kubectl
+        process = subprocess.run(
+            ["kubectl", "apply", "-f", temp_file_path], capture_output=True, text=True
+        )
+
+        if process.returncode == 0:
+            return JSONResponse(content={"message": "Policy applied successfully!"})
+        else:
+            raise HTTPException(status_code=400, detail=process.stderr)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/get-policies")
+async def get_policies():
+    try:
+        process = subprocess.run(
+            ["kubectl", "get", "tracingpolicies.cilium.io", "-o", "yaml"],
+            capture_output=True,
+            text=True
+        )
+
+        if process.returncode != 0:
+            raise HTTPException(status_code=400, detail=process.stderr)
+
+        policies_yaml = yaml.safe_load(process.stdout)
+        applied_policies = policies_yaml.get("items", [])
+
+        formatted_policies = []
+
+        for policy in applied_policies:
+            name = policy.get("metadata", {}).get("name", "Unknown")
+            kprobes = policy.get("spec", {}).get("kprobes", [])
+
+            parsed_kprobes = []
+            for kprobe in kprobes:
+                call = kprobe.get("call", "Unknown")
+                syscall = kprobe.get("syscall", False)
+                selectors = kprobe.get("selectors", [])
+
+                match_commands = []
+                actions = []
+
+                for selector in selectors:
+                    match_args = selector.get("matchArgs", [])
+                    for arg in match_args:
+                        if arg.get("index") == 0 and arg.get("operator") == "Equal":
+                            match_commands.extend(arg.get("values", []))
+
+                    match_actions = selector.get("matchActions", [])
+                    for action in match_actions:
+                        actions.append(action.get("action", "Unknown"))
+
+                parsed_kprobes.append({
+                    "call": call,
+                    "syscall": syscall,
+                    "match_commands": match_commands,
+                    "actions": actions
+                })
+
+            formatted_policies.append({
+                "name": name,
+                "kprobes": parsed_kprobes
+            })
+
+        return JSONResponse(content={"policies": formatted_policies})
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    
+@app.get("/rate-limit", response_class=HTMLResponse)
+def show_pods_table(request: Request):
+    return templates.TemplateResponse("rate-limiting.html", {"request": request})
+
+REVERT_COMMAND = [
+    "kubectl", "patch", "ingress", "calculator-ingress", "-n", "default", "--type=json",
+    "-p", '[{"op": "remove", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1limit-rps"},'
+          '{"op": "remove", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1limit-burst"},'
+          '{"op": "remove", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1limit-connections"}]'
+]
+
+@app.post("/revert_rate_limit")
+def revert_rate_limit():
+    try:
+        subprocess.run(REVERT_COMMAND, check=True)
+        return {"message": "Rate limiting reverted successfully"}
+    except subprocess.CalledProcessError as e:
+        return {"error": f"Failed to revert rate limiting: {e}"}
+
+
+@app.post("/apply_rate_limit")
+def apply_rate_limit(user_value: int = Form(...)):
+    # Construct the JSON patch payload
+    patch_data = json.dumps([
+        {"op": "add", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1limit-rps", "value": str(user_value)},
+        {"op": "add", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1limit-burst", "value": str(user_value + 10)},
+        {"op": "add", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1limit-connections", "value": str(user_value + 20)}
+    ])
+
+    # Construct the command
+    patch_command = [
+        "kubectl", "patch", "ingress", "calculator-ingress", "-n", "default", "--type=json",
+        "-p", patch_data
+    ]
+
+    try:
+        subprocess.run(patch_command, check=True)
+        return {"message": "Rate limiting applied successfully"}
+    except subprocess.CalledProcessError as e:
+        return {"error": f"Failed to apply rate limiting: {e}"}
