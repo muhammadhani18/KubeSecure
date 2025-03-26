@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form,UploadFile, Query, HTTPException
+from fastapi import FastAPI, Request, Form,UploadFile, Query, HTTPException, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -10,7 +10,6 @@ import signal
 import threading
 import queue
 import json
-import datetime
 import yaml
 import tempfile
 import os
@@ -22,6 +21,9 @@ import yaml
 import firebase_admin
 from firebase_admin import credentials, db
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from datetime import datetime, timedelta
+from jose import JWTError, jwt
 
 
 app = FastAPI()
@@ -58,12 +60,6 @@ class ClusterInfoResponse(BaseModel):
     resourceUsage: List[Dict[str, str]]
 
 
-# Mount static files at "/static"
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Set up templates
-templates = Jinja2Templates(directory="templates")
-
 # Hardcoded users
 users_db = {
     "usman@gmail.com": "12345678"
@@ -72,6 +68,48 @@ users_db = {
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
     return "Fast api server running"
+
+
+
+# Secret key for JWT encoding & decoding
+SECRET_KEY = "c@tsRul3D0gsDr0ol"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440
+
+# Hardcoded user credentials
+HARD_CODED_USERNAME = "hani@gmail.com"
+HARD_CODED_PASSWORD = "12345678"
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+def create_access_token(data: dict, expires_delta: timedelta):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + expires_delta
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+@app.post("/api/login")
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    if form_data.username != HARD_CODED_USERNAME or form_data.password != HARD_CODED_PASSWORD:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(data={"sub": form_data.username}, expires_delta=access_token_expires)
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/protected")
+def protected_route(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    return {"message": "You have access to this protected route", "user": username}
+
+
 
 
 @app.get("/get-alerts")
