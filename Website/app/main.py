@@ -37,13 +37,13 @@ app.add_middleware(
 )
 
 
-# Load Kubernetes config (use 'inClusterConfig()' if running inside a cluster)
 cred = credentials.Certificate('service-key.json')
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://kube-2e93f-default-rtdb.firebaseio.com/'
 })
 
 
+# Load Kubernetes config (use 'inClusterConfig()' if running inside a cluster)
 # config.load_kube_config()
 # v1 = client.CoreV1Api()
 # apps_v1 = client.AppsV1Api()
@@ -71,11 +71,8 @@ users_db = {
 
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "message": ""})
+    return "Fast api server running"
 
-@app.get("/alerts", response_class=HTMLResponse)
-def read_root(request: Request):
-    return templates.TemplateResponse("alerts.html", {"request": request, "message": ""})
 
 @app.get("/get-alerts")
 async def get_alerts():
@@ -91,88 +88,6 @@ async def get_alerts():
                    for key, value in alerts_data.items()]
 
     return {"alerts": alerts_list}
-
-@app.post("/login", response_class=HTMLResponse)
-def login(request: Request, email: str = Form(...), password: str = Form(...)):
-    if email in users_db and users_db[email] == password:
-        # Redirect to welcome page on successful login
-        return templates.TemplateResponse("home.html", {"request": request})
-    else:
-        # Return to login page with error message
-        return templates.TemplateResponse("index.html", {"request": request, "message": "Invalid email or password."})
-
-@app.post("/signup", response_class=HTMLResponse)
-def signup(request: Request, email: str = Form(...), password: str = Form(...)):
-    if email in users_db:
-        return templates.TemplateResponse("index.html", {"request": request, "message": "User already exists."})
-    else:
-        users_db[email] = password
-        return RedirectResponse(url="/home", status_code=303)
-
-@app.get("/home", response_class=HTMLResponse)
-def welcome(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
-
-# New route for pods table
-@app.get("/table", response_class=HTMLResponse)
-def show_pods_table(request: Request):
-    return templates.TemplateResponse("pods.html", {"request": request})
-
-@app.get("/api/cluster-info", response_model=ClusterInfoResponse)
-async def get_cluster_info():
-    # Get all namespaces
-    namespaces = v1.list_namespace().items
-    total_namespaces = len(namespaces)
-
-    # Get all pods
-    pods = v1.list_pod_for_all_namespaces().items
-    total_pods = len(pods)
-
-    # Get all nodes
-    nodes = v1.list_node().items
-    total_nodes = len(nodes)
-
-    # Count pods per namespace
-    pods_per_namespace = {}
-    for pod in pods:
-        ns = pod.metadata.namespace
-        pods_per_namespace[ns] = pods_per_namespace.get(ns, 0) + 1
-
-    # Node status breakdown
-    node_statuses = {"Ready": 0, "Not Ready": 0, "Unknown": 0}
-    for node in nodes:
-        for condition in node.status.conditions:
-            if condition.type == "Ready":
-                node_statuses["Ready" if condition.status == "True" else "Not Ready"] += 1
-                break
-        else:
-            node_statuses["Unknown"] += 1  # No Ready condition found
-
-    # CPU & Memory usage per namespace
-    resource_usage = []
-    for ns in namespaces:
-        namespace_name = ns.metadata.name
-        cpu_usage = memory_usage = 0
-        for pod in pods:
-            if pod.metadata.namespace == namespace_name:
-                for container in pod.spec.containers:
-                    if container.resources.requests:
-                        cpu_usage += int(container.resources.requests.get("cpu", "0m").rstrip("m")) / 1000
-                        memory_usage += int(container.resources.requests.get("memory", "0Mi").rstrip("Mi"))
-        resource_usage.append({
-            "namespace": namespace_name,
-            "cpu": f"{cpu_usage:.2f} cores",
-            "memory": f"{memory_usage} Mi"
-        })
-
-    return {
-        "totalNodes": total_nodes,
-        "totalPods": total_pods,
-        "totalNamespaces": total_namespaces,
-        "podsPerNamespace": pods_per_namespace,
-        "nodeStatuses": node_statuses,
-        "resourceUsage": resource_usage
-    }
 
 
 
@@ -332,9 +247,6 @@ def detect_code_smells(manifests):
     return smells
 
 
-@app.get("/yaml-validate", response_class=HTMLResponse)
-def show_pods_table(request: Request):
-    return templates.TemplateResponse("checkSmell.html", {"request": request})
 
 @app.post("/api/detect-smells")
 async def detect_smells(file: UploadFile):
@@ -356,9 +268,7 @@ async def detect_smells(file: UploadFile):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
 
-@app.get("/policy", response_class=HTMLResponse)
-def show_pods_table(request: Request):
-    return templates.TemplateResponse("policy.html", {"request": request})
+
 
 @app.post("/api/enforce-policy")
 async def enforce_policy(
@@ -466,10 +376,6 @@ async def get_policies():
         raise HTTPException(status_code=500, detail=str(e))
 
     
-@app.get("/rate-limit", response_class=HTMLResponse)
-def show_pods_table(request: Request):
-    return templates.TemplateResponse("rate-limiting.html", {"request": request})
-
 REVERT_COMMAND = [
     "kubectl", "patch", "ingress", "calculator-ingress", "-n", "default", "--type=json",
     "-p", '[{"op": "remove", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1limit-rps"},'
@@ -577,3 +483,4 @@ def get_cluster_info() -> Dict:
 
     except Exception as e:
         return {"error": str(e)}
+    
