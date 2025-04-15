@@ -1,5 +1,15 @@
 # KubeSecure: Kernel Event Tracing and AI Driven Anomaly Detection in Kubernetes Cluster
 
+## 🗂️ Table of Contents
+- [Introduction](#-introduction)
+- [Motivation](#-motivation)
+- [Core Features](#️-core-features)
+- [Project Architecture](#-project-architecture)
+- [Tech Stack](#-tech-stack)
+- [Setup & Installation](#-setup--installation)
+- [Usage](#-usage)
+---
+
 ## 📖 Introduction
 Cyberattacks have grown more frequent and sophisticated, posing significant risks to modern cloud-native infrastructures. Kubernetes, a leading container orchestration platform, is especially vulnerable due to its complexity and widespread adoption across industries. Traditional static rule-based security tools are often unable to detect or mitigate the growing variety of advanced network threats — including Distributed Denial of Service (DDoS) attacks, intrusion attempts, and misconfigurations.
 
@@ -48,15 +58,6 @@ Offers visual insights into network performance and security status through Prom
 
 ---
 
-## 🗂️ Table of Contents
-- [Introduction](#-introduction)
-- [Motivation](#-motivation)
-- [Core Features](#️-core-features)
-- [Project Architecture](#-project-architecture)
-- [Tech Stack](#-tech-stack)
-- [Setup & Installation](#-setup--installation)
-- [Usage](#-usage)
----
 
 ## 🏗️ Project Architecture
 The KubeSecure platform combines Kubernetes-native security tools (Cilium, Tetragon) with an AI-based anomaly detection component for real-time traffic analysis and automated threat mitigation. Below is a high-level overview of how the components interact:
