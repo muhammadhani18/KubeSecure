@@ -22,7 +22,7 @@ import firebase_admin
 from firebase_admin import credentials, db
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 
 
@@ -46,9 +46,9 @@ firebase_admin.initialize_app(cred, {
 
 
 # Load Kubernetes config (use 'inClusterConfig()' if running inside a cluster)
-# config.load_kube_config()
-# v1 = client.CoreV1Api()
-# apps_v1 = client.AppsV1Api()
+config.load_kube_config()
+v1 = client.CoreV1Api()
+apps_v1 = client.AppsV1Api()
 
 # Define response model
 class ClusterInfoResponse(BaseModel):
@@ -481,13 +481,12 @@ def get_cluster_info() -> Dict:
         memory_usage = "68%"
         storage_usage = "35%"
 
-        # Events (last 5)
         event_list = [{
             "type": event.type,
             "resource": event.involved_object.name,
             "message": event.message,
-            "time": event.last_timestamp if event.last_timestamp else "Unknown"
-        } for event in sorted(events, key=lambda x: x.last_timestamp or "0", reverse=True)[:5]]
+            "time": event.last_timestamp.isoformat() if event.last_timestamp else "Unknown"
+        } for event in sorted(events, key=lambda x: x.last_timestamp or datetime.min.replace(tzinfo=timezone.utc), reverse=True)[:5]]
 
         # Organizing pods by namespace
         namespace_pods = {}
