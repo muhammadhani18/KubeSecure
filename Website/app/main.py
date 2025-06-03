@@ -1,14 +1,7 @@
 from fastapi import FastAPI, Request, Form,UploadFile, Query, HTTPException, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from subprocess import run, PIPE
-import re
 import subprocess
-import sys
-import signal
-import threading
-import queue
 import json
 import yaml
 import tempfile
@@ -24,6 +17,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
+from fastapi import FastAPI, HTTPException
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI()
@@ -711,3 +710,108 @@ async def get_service_map_data():
         import traceback
         print(f"An unexpected error occurred: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+    
+
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(title="Kubernetes Dashboard API", version="1.0.0")
+
+# Add CORS middleware to allow requests from the frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # Add your frontend URLs
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class ScanImageRequest(BaseModel):
+    image_name: str
+
+class ScanImageResponse(BaseModel):
+    message: str = None
+    data: dict = None
+    error: str = None
+
+@app.get("/")
+async def root():
+    return {"message": "Kubernetes Dashboard API"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
+@app.post("/api/scan-image", response_model=ScanImageResponse)
+async def scan_image(request: ScanImageRequest):
+    """
+    Scan a container image for vulnerabilities using Trivy
+    """
+    try:
+        image_name = request.image_name.strip()
+        
+        if not image_name:
+            raise HTTPException(status_code=400, detail="image_name is required and cannot be empty")
+        
+        # Construct the trivy command
+        command = ["trivy", "image", "--format", "json", "--quiet", image_name]
+        
+        logger.info(f"Scanning image: {image_name}")
+        
+        # Execute the trivy command
+        try:
+            result = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                timeout=300,  # 5 minute timeout
+                check=False
+            )
+        except subprocess.TimeoutExpired:
+            logger.error(f"Trivy scan timed out for image: {image_name}")
+            raise HTTPException(status_code=408, detail="Scan timed out. The image might be too large or the registry is slow.")
+        except FileNotFoundError:
+            logger.error("Trivy command not found")
+            raise HTTPException(status_code=500, detail="Trivy command not found. Please ensure it is installed and in PATH.")
+        
+        # Check for errors
+        if result.returncode != 0:
+            error_message = result.stderr.strip() if result.stderr else "Unknown error occurred"
+            logger.error(f"Trivy scan failed for {image_name}: {error_message}")
+            
+            # Check for specific error types
+            if "image not found" in error_message.lower() or "name unknown" in error_message.lower():
+                raise HTTPException(status_code=404, detail=f"Image not found: {image_name}")
+            elif "unauthorized" in error_message.lower():
+                raise HTTPException(status_code=401, detail=f"Unauthorized to access image: {image_name}")
+            else:
+                raise HTTPException(status_code=500, detail=f"Trivy scan failed: {error_message}")
+        
+        # Parse the JSON output
+        try:
+            if not result.stdout.strip():
+                # Empty output might mean no vulnerabilities or an error
+                logger.warning(f"Empty output from Trivy for image: {image_name}")
+                return ScanImageResponse(message="No vulnerabilities found", data=[])
+            
+            trivy_output = json.loads(result.stdout)
+            logger.info(f"Successfully scanned image: {image_name}")
+            
+            return ScanImageResponse(
+                message="Scan completed successfully",
+                data=trivy_output
+            )
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse Trivy JSON output: {e}")
+            logger.error(f"Raw stdout: {result.stdout}")
+            raise HTTPException(status_code=500, detail="Failed to parse Trivy output")
+    
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error during image scan: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error occurred during scan")
