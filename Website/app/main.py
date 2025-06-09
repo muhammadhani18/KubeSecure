@@ -451,7 +451,33 @@ def apply_rate_limit(user_value: int = Form(...)):
     except subprocess.CalledProcessError as e:
         return {"error": f"Failed to apply rate limiting: {e}"},500
     
-    
+
+@app.get("/check_rate_limit")
+def check_rate_limit():
+    try:
+        # Get ingress resource in JSON format
+        result = subprocess.run(
+            ["kubectl", "get", "ingress", "calculator-ingress", "-n", "default", "-o", "json"],
+            check=True, capture_output=True, text=True
+        )
+        ingress_data = json.loads(result.stdout)
+        annotations = ingress_data.get("metadata", {}).get("annotations", {})
+
+        rate_limits = {
+            "limit-rps": annotations.get("nginx.ingress.kubernetes.io/limit-rps"),
+            "limit-burst": annotations.get("nginx.ingress.kubernetes.io/limit-burst"),
+            "limit-connections": annotations.get("nginx.ingress.kubernetes.io/limit-connections")
+        }
+
+        # Check if all 3 rate-limiting annotations are present
+        applied = all(rate_limits.values())
+        return {
+            "rate_limiting_applied": applied,
+            "details": rate_limits
+        }, 200
+
+    except subprocess.CalledProcessError as e:
+        return {"error": f"Failed to check rate limiting: {e}"}, 500
 
 @app.get("/cluster-info")
 def get_cluster_info() -> Dict:
@@ -712,22 +738,6 @@ async def get_service_map_data():
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
     
 
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-app = FastAPI(title="Kubernetes Dashboard API", version="1.0.0")
-
-# Add CORS middleware to allow requests from the frontend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # Add your frontend URLs
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 class ScanImageRequest(BaseModel):
     image_name: str
 
@@ -735,10 +745,6 @@ class ScanImageResponse(BaseModel):
     message: str = None
     data: dict = None
     error: str = None
-
-@app.get("/")
-async def root():
-    return {"message": "Kubernetes Dashboard API"}
 
 @app.get("/health")
 async def health_check():
