@@ -12,7 +12,7 @@ def run_kubectl_command(pod_name):
     command = [
         "kubectl", "exec", "-n", "kube-system", "-ti", "daemonset/tetragon", 
         "-c", "tetragon", "--", "tetra", "getevents", "-o", "compact", 
-        "--pods", "sith-infiltrator"
+        "--pods", "backend-575585967-6qgm9"
     ]
 
     # Create a queue for thread-safe communication
@@ -20,7 +20,7 @@ def run_kubectl_command(pod_name):
     should_stop = threading.Event()
 
     # File to store events
-    json_file = "events.json"
+    json_file = "../Website/app/events.json"
 
     # Initialize the JSON file with an empty array if it doesn't already exist
     with open(json_file, "w") as f:
@@ -148,4 +148,4 @@ def run_kubectl_command(pod_name):
         cleanup()
 
 if __name__ == "__main__":
-    run_kubectl_command("sith-infiltrator")
+    run_kubectl_command("backend-575585967-6qgm9")

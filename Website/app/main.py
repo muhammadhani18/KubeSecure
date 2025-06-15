@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form,UploadFile, Query, HTTPException, Depends
+from fastapi import FastAPI, Request, Form,UploadFile, Query, HTTPException, Depends, status
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from subprocess import run, PIPE
 import subprocess
@@ -6,9 +6,9 @@ import json
 import yaml
 import tempfile
 import os
-import datetime 
+# import datetime 
 from kubernetes import client, config
-from pydantic import BaseModel
+from pydantic import BaseModel, constr
 from typing import Dict, List
 import yaml 
 import firebase_admin
@@ -19,7 +19,7 @@ from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from fastapi import FastAPI, HTTPException
 import logging
-
+# from datetime import datetime
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -140,16 +140,19 @@ def load_events():
     
 
 def filter_events(events, minutes):
-    time_threshold = datetime.datetime.utcnow() - datetime.timedelta(minutes=minutes)
-    return [event for event in events if datetime.datetime.fromisoformat(event["timestamp"]) >= time_threshold]
+    time_threshold = datetime.utcnow() - timedelta(minutes=minutes)
+    return [event for event in events if datetime.fromisoformat(event["timestamp"]) >= time_threshold]
 
-@app.get("/events", response_class=HTMLResponse)
-def show_events(request: Request, minutes: int = Query(5, description="Filter events from the last N minutes")):
-    events = load_events()
-    filtered_events = filter_events(events, minutes)
-    return templates.TemplateResponse("events.html", {"request": request, "events": filtered_events})
-    
-    
+
+@app.get("/api/events")
+def get_events_json(minutes: int = Query(5)):
+    try:
+        events = load_events()
+        filtered = filter_events(events, minutes)
+        return JSONResponse(content=filtered)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
     
     
 def load_yaml(file_path):
@@ -413,6 +416,40 @@ async def get_policies():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+class DeletePolicyRequest(BaseModel):
+    policy_name: constr(strip_whitespace=True, min_length=1)
+
+
+@app.delete("/api/delete-policy", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_policy(req: DeletePolicyRequest):
+    """
+    Delete a Tetragon tracingpolicy by shelling out to
+    `kubectl delete tracingpolicy <policy_name>`.
+    """
+    policy_name = req.policy_name
+
+    try:
+        completed = subprocess.run(
+            ["kubectl", "delete", "tracingpolicy", policy_name],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+    except subprocess.TimeoutExpired:
+        raise HTTPException(
+            status_code=504,
+            detail="kubectl timed out while attempting to delete the policy",
+        )
+
+    if completed.returncode != 0:
+        # Bubble up stderr from kubectl for easier troubleshooting
+        raise HTTPException(
+            status_code=400,
+            detail=f"kubectl error: {completed.stderr.strip() or 'Unknown error'}",
+        )
+
+    return  # 204 – success, no body
     
 REVERT_COMMAND = [
     "kubectl", "patch", "ingress", "calculator-ingress", "-n", "default", "--type=json",

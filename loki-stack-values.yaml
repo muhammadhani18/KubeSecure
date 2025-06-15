@@ -1,0 +1,100 @@
+grafana:
+  enabled: false
+
+loki:
+  deploymentMode: SingleBinary
+  # If using SingleBinary, ensure persistence is configured or aware of ephemeral storage.
+  # For Kind, filesystem storage might be sufficient for testing, but won't persist across cluster resets.
+  # For persistent logs, you'd configure a persistent volume claim (PVC) and potentially an appropriate StorageClass
+  # (Kind usually provides a default storage class, but for production, you'd use something like local-path or cloud provider storage).
+  commonConfig:
+    replication_factor: 1
+  storage:
+    type: 'filesystem' # Or 'boltdb-shipper' with an object store if you want persistence
+    filesystem:
+      directory: /tmp/loki/chunks # Adjust this path or configure a PVC
+  schemaConfig:
+    configs:
+      - from: "2024-01-01" # Start date for the schema config
+        store: tsdb
+        object_store: filesystem # Or 's3', 'gcs', 'azure', etc.
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+  limits_config:
+    # Adjust these based on your expected log volume and available resources
+    retention_period: 4d # Example: 4 days retention
+    ingestion_rate_mb: 10 # Example: 10MB/s ingestion rate
+
+# ... (other parts of your loki-stack-values.yaml) ...
+promtail:
+  enabled: true
+  
+  # Add resource limits and requests
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  
+  # Add security context to increase file descriptor limits
+  securityContext:
+    runAsUser: 0  # Promtail needs root access to read system logs
+    privileged: true  # Needed to modify system limits
+    fsGroup: 0
+  
+  # Add init container to increase ulimits
+  initContainers:
+    - name: increase-ulimit
+      image: busybox:1.35
+      command: ['sh', '-c', 'ulimit -n 65536']
+      securityContext:
+        runAsUser: 0
+        privileged: true
+  
+  # Add environment variables for file descriptor limits
+  env:
+    - name: GOMAXPROCS
+      value: "2"
+  
+  config:
+    server:
+      file_watch_limit: 65536  # Increased from 60000
+      
+    positions:
+      filename: /run/promtail/positions.yaml
+
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+
+    scrape_configs:
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: __host__
+          - action: drop
+            regex: ^(logging|monitoring|kube-system)$
+            source_labels: [__meta_kubernetes_namespace]
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - action: replace
+            source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - action: replace
+            source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - action: replace
+            source_labels: [__meta_kubernetes_container_name]
+            target_label: container
+          # Add more selective filtering to reduce file count
+          - action: drop
+            regex: "true"
+            source_labels: [__meta_kubernetes_pod_annotation_promtail_skip]
+          - action: drop
+            regex: "(Succeeded|Failed)"
+            source_labels: [__meta_kubernetes_pod_phase]
