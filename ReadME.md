@@ -35,8 +35,10 @@ The system's architecture is designed around a Kind Kubernetes cluster and sever
     *   Interfacing with Tetragon for security policy enforcement.
 
 ## KubeSecure Architecture
-![KubeSecure Architecture](fyp3.png)
+![KubeSecure Architecture](images/fyp3.png)
 
+## CLSTM Architecture
+![Model Architecture](images/clstm.png)
 
 # Prerequisites
 
