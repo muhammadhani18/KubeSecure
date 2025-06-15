@@ -30,7 +30,7 @@ clstm_model = load_model(model_path)
 
 def run_cicflowmeter():
     # Start the cicflowmeter command in a subprocess
-    process = subprocess.Popen(["sudo", "cicflowmeter", "-i", "enp3s0", "-c", "flows.csv"])
+    process = subprocess.Popen(["sudo", "cicflowmeter", "-i", "enp3s0", "-c", "flow.csv"])
     return process
 
 def stop_cicflowmeter(process):
@@ -65,7 +65,7 @@ def send_slack_alert():
                     {"title": "Severity", "value": "Critical", "short": True},
                     {"title": "Status", "value": "Firing", "short": True},
                 ],
-                "footer": "Grafana Alerts",
+                "footer": "Slack Alerts",
                 "ts": int(time.time())  # Use current UNIX timestamp
             }
         ]
@@ -74,7 +74,7 @@ def send_slack_alert():
     response = requests.post(SLACK_WEBHOOK_URL, json=payload)
 
     if response.status_code == 200:
-        print("Grafana alert sent successfully!")
+        print("Slack alert sent successfully!")
     else:
         print(f"Failed to send alert: {response.text}")
 
@@ -255,6 +255,15 @@ def predict(df_data):
         send_slack_alert()
         alert_message = 'Anomaly Detected'  # Customize your alert
         send_alert_firebase(alert_message)
+    else:
+        patch_ingress(apply=False)
+        alert_message = 'No Anomaly Detected'
+        send_alert_firebase(alert_message)
+
+
+
+
+
 
 
 def main():
