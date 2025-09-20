@@ -3,3 +3,9 @@ uvicorn
 jinja2
 python-multipart
 kubernetes
+firebase-admin
+python-jose[cryptography]
+PyYAML
+pymongo
+passlib
+cryptography
